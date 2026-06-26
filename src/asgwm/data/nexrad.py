@@ -103,8 +103,8 @@ def _vol_time_min(key: str) -> Optional[int]:
     return None
 
 
-def _composite_from_volume(local_path: str, grid: int, km: float) -> np.ndarray:  # pragma: no cover
-    """Read one Level II volume -> 384x384 1 km column-max composite reflectivity (dBZ)."""
+def _composite_from_volume(local_path: str, grid: int, km: float):  # pragma: no cover
+    """Read one Level II volume -> (composite dBZ [grid,grid], origin_lat, origin_lon)."""
     radar = pyart.io.read_nexrad_archive(local_path)
     # QC: drop low-correlation (non-meteorological) gates when dual-pol is present.
     gf = pyart.filters.GateFilter(radar)
@@ -127,9 +127,8 @@ def _composite_from_volume(local_path: str, grid: int, km: float) -> np.ndarray:
     comp = np.nanmax(ref, axis=0)                                  # [y, x] dBZ
     lat0 = float(g.origin_latitude["data"][0])
     lon0 = float(g.origin_longitude["data"][0])
-    comp._lat0 = lat0  # type: ignore[attr-defined]
-    comp._lon0 = lon0  # type: ignore[attr-defined]
-    return comp
+    # Plain ndarrays can't hold custom attributes; return the radar origin explicitly.
+    return comp, lat0, lon0
 
 
 def _build_event(cfg, s3, case: Dict[str, object]) -> Optional[Dict[str, np.ndarray]]:  # pragma: no cover
@@ -177,10 +176,9 @@ def _build_event(cfg, s3, case: Dict[str, object]) -> Optional[Dict[str, np.ndar
         local = os.path.join(tempfile.gettempdir(), os.path.basename(key))
         if not os.path.exists(local):
             s3.download_file(BUCKET, key, local)
-        comp = _composite_from_volume(local, grid, km)
+        comp, clat, clon = _composite_from_volume(local, grid, km)
         comp_cache[key] = comp
-        lat0 = getattr(comp, "_lat0", lat0)
-        lon0 = getattr(comp, "_lon0", lon0)
+        lat0, lon0 = clat, clon
 
     frames = [comp_cache[keyrecs[j][1]] for j in idx]
     comp_stack = np.stack(frames, axis=0).astype(np.float32)          # [T,H,W] dBZ
