@@ -113,9 +113,9 @@ def _composite_from_volume(local_path: str, grid: int, km: float) -> np.ndarray:
     gf.exclude_invalid("reflectivity")
     half = (grid * km / 2.0) * 1000.0 - 500.0  # meters; 384*1km/2 - 0.5km -> exact 1 km
     g = pyart.map.grid_from_radars(
-        (5, grid, grid),
-        ((0.0, 10000.0), (-half, half), (-half, half)),  # (z, y, x) in METERS
-        radars=(radar,),
+        (radar,),                                        # radars (positional #1)
+        (5, grid, grid),                                 # grid_shape (z, y, x)
+        ((0.0, 10000.0), (-half, half), (-half, half)),  # grid_limits (z, y, x) in METERS
         fields=["reflectivity"],
         gatefilters=(gf,),
         weighting_function="Barnes2",
