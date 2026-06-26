@@ -33,6 +33,7 @@ import numpy as np
 from ..utils.config import Config
 from . import sevir as _sevir
 from . import normalize as _norm
+from . import ood_resample as _ood
 
 # ---- optional heavy deps ---------------------------------------------------
 try:  # pragma: no cover
@@ -153,33 +154,40 @@ def _build_event(cfg, s3, case: Dict[str, object]) -> Optional[Dict[str, np.ndar
     dt = int(cfg.get_path("data.minutes_per_frame", 5))
     T = int(cfg.get_path("data.in_frames", 13)) + int(cfg.get_path("data.out_frames", 36))
     dz_eff = float(cfg.get_path("data.mrms.dz_eff_m", _norm.DEFAULT_DZ_EFF_M))
-    tol = dt / 2.0
 
     date = str(case["date"])
-    start = str(case.get("start", "000000"))
+    start = str(case.get("start", "000000")).ljust(6, "0")[:6]
     lat0 = float(case.get("lat", 35.5))
     lon0 = float(case.get("lon", -97.5))
-    start_min = int(start[:2]) * 60 + int(start[2:4])
-    need = [start_min + i * dt for i in range(T)]
+    start_min = _ood.start_minute(start)
 
-    keys = _list_day(s3, date)
-    keyed = [(k, _key_time_min(k)) for k in keys]
-    keyed = [(k, t) for k, t in keyed if t is not None]
-    if not keyed:
+    # List files across every UTC day the window spans (handles midnight crossing);
+    # abs-minute makes pre/post-midnight times comparable.
+    keyrecs: List[tuple] = []  # (abs_minute, key)
+    for day, off in _ood.spanned_dates(date, start, T, dt):
+        for k in _list_day(s3, day):
+            t = _key_time_min(k)
+            if t is not None:
+                keyrecs.append((_ood.abs_minute(off, t), k))
+    keyrecs.sort()
+    if not keyrecs:
         print(f"[mrms] no files for {date} (archive starts 2020-10-14)")
         return None
-    avail = np.array([t for _, t in keyed])
 
-    frames = []
-    for tt in need:
-        j = int(np.argmin(np.abs(avail - tt)))
-        if abs(int(avail[j]) - tt) > tol:
-            print(f"[mrms] {date}: gap at +{tt - start_min}min -> skip case")
-            return None
-        full = _read_grib(s3, keyed[j][0])
+    idx = _ood.select_nearest([a for a, _ in keyrecs], start_min, T, dt, tol_min=dt)
+    if idx is None:
+        print(f"[mrms] {date}: coverage gap > {dt}min -> skip case")
+        return None
+
+    # Read only the distinct selected files.
+    tile_cache: Dict[str, np.ndarray] = {}
+    for j in sorted(set(idx)):
+        key = keyrecs[j][1]
+        full = _read_grib(s3, key)
         full = np.where(np.isin(full, _SENTINELS), np.nan, full)
-        frames.append(_crop_tile(full, lat0, lon0, grid))
+        tile_cache[key] = _crop_tile(full, lat0, lon0, grid)
 
+    frames = [tile_cache[keyrecs[j][1]] for j in idx]
     comp = np.stack(frames, axis=0).astype(np.float32)            # [T,H,W] dBZ
     vil_byte = _norm.dbz_to_vil_byte(comp, dz_eff_m=dz_eff)       # [T,H,W] byte
     vil_byte = _norm.resize_to_canonical(vil_byte, grid)

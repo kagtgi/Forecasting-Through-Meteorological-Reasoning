@@ -31,6 +31,7 @@ import numpy as np
 from ..utils.config import Config
 from . import sevir as _sevir
 from . import normalize as _norm
+from . import ood_resample as _ood
 
 # ---- optional heavy deps ---------------------------------------------------
 try:  # pragma: no cover - only when pyart is installed
@@ -132,7 +133,12 @@ def _composite_from_volume(local_path: str, grid: int, km: float) -> np.ndarray:
 
 
 def _build_event(cfg, s3, case: Dict[str, object]) -> Optional[Dict[str, np.ndarray]]:  # pragma: no cover
-    """Assemble one [T,384,384] VIL-byte event from a NEXRAD case, or None on failure."""
+    """Assemble one [T,384,384] VIL-byte event from a NEXRAD case, or None on failure.
+
+    Lists volumes across every UTC day the window spans (handles midnight crossing), picks
+    the nearest volume per uniform 5-min slot (tolerance = dt, robust to ~6-min cadence),
+    and decodes ONLY the selected volumes. Returns None on a genuine gap so the caller skips.
+    """
     import tempfile
 
     grid = int(cfg.get_path("data.grid", _norm.CANON_GRID))
@@ -140,52 +146,43 @@ def _build_event(cfg, s3, case: Dict[str, object]) -> Optional[Dict[str, np.ndar
     dt = int(cfg.get_path("data.minutes_per_frame", 5))
     T = int(cfg.get_path("data.in_frames", 13)) + int(cfg.get_path("data.out_frames", 36))
     dz_eff = float(cfg.get_path("data.nexrad.dz_eff_m", _norm.DEFAULT_DZ_EFF_M))
-    tol = dt / 2.0
 
     station = str(case["station"])
     date = str(case["date"])
-    start = str(case.get("start", "000000"))
-    start_min = int(start[:2]) * 60 + int(start[2:4])
+    start = str(case.get("start", "000000")).ljust(6, "0")[:6]
+    start_min = _ood.start_minute(start)
 
-    keys = _list_volumes(s3, station, date)
-    keyed = [(k, _vol_time_min(k)) for k in keys]
-    keyed = [(k, t) for k, t in keyed if t is not None and t >= start_min - tol]
-    if not keyed:
-        print(f"[nexrad] no volumes for {station} {date} >= {start}")
+    # List candidate volume keys across all spanned UTC days; abs-minute handles midnight.
+    keyrecs: List[tuple] = []  # (abs_minute, key)
+    for day, off in _ood.spanned_dates(date, start, T, dt):
+        for k in _list_volumes(s3, station, day):
+            t = _vol_time_min(k)
+            if t is not None:
+                keyrecs.append((_ood.abs_minute(off, t), k))
+    keyrecs.sort()
+    if not keyrecs:
+        print(f"[nexrad] no volumes for {station} {date} {start}")
         return None
 
-    # Decode volumes to composites, indexed by their actual minute-of-day.
-    comp_by_t: Dict[int, np.ndarray] = {}
+    idx = _ood.select_nearest([a for a, _ in keyrecs], start_min, T, dt, tol_min=dt)
+    if idx is None:
+        print(f"[nexrad] {station} {date}: coverage gap > {dt}min -> skip case")
+        return None
+
+    # Decode only the distinct selected volumes.
+    comp_cache: Dict[str, np.ndarray] = {}
     lat0 = lon0 = None
-    need = [start_min + i * dt for i in range(T)]
-    for k, t in keyed:
-        if t > need[-1] + tol:
-            break
-        local = os.path.join(tempfile.gettempdir(), os.path.basename(k))
+    for j in sorted(set(idx)):
+        key = keyrecs[j][1]
+        local = os.path.join(tempfile.gettempdir(), os.path.basename(key))
         if not os.path.exists(local):
-            s3.download_file(BUCKET, k, local)
-        try:
-            comp = _composite_from_volume(local, grid, km)
-        except Exception as e:
-            print(f"[nexrad]   skip {os.path.basename(k)}: {e}")
-            continue
-        comp_by_t[t] = comp
+            s3.download_file(BUCKET, key, local)
+        comp = _composite_from_volume(local, grid, km)
+        comp_cache[key] = comp
         lat0 = getattr(comp, "_lat0", lat0)
         lon0 = getattr(comp, "_lon0", lon0)
 
-    if not comp_by_t:
-        return None
-
-    # Resample to a uniform 5-min axis: nearest volume within +-tol; drop on gaps.
-    avail = np.array(sorted(comp_by_t))
-    frames = []
-    for tt in need:
-        j = int(np.argmin(np.abs(avail - tt)))
-        if abs(int(avail[j]) - tt) > tol:
-            print(f"[nexrad] {station} {date}: gap at +{tt - start_min}min -> skip case")
-            return None
-        frames.append(comp_by_t[int(avail[j])])
-
+    frames = [comp_cache[keyrecs[j][1]] for j in idx]
     comp_stack = np.stack(frames, axis=0).astype(np.float32)          # [T,H,W] dBZ
     vil_byte = _norm.dbz_to_vil_byte(comp_stack, dz_eff_m=dz_eff)     # [T,H,W] byte
     vil_byte = _norm.resize_to_canonical(vil_byte, grid)

@@ -190,11 +190,37 @@ across all three datasets.
 
 ---
 
+## Access preflight (run this first)
+
+Before any heavy download, confirm every bucket is reachable **and** that each OOD case has
+gap-free coverage for the requested window — using only the Python stdlib over anonymous
+HTTPS (no boto3 / pyart / cfgrib / AWS account):
+
+```bash
+python datasets/check_access.py                          # all three, config defaults
+python datasets/check_access.py --override data.out_frames=12   # OOD at the 120-min window
+python datasets/check_access.py --datasets nexrad mrms   # just the OOD sets
+```
+
+It lists the real object keys across every UTC day the window spans and runs the loaders' own
+time-selection (`ood_resample.select_nearest`, day-spanning + tolerance = `dt`), so a **GO**
+means the case will actually yield an event once decoded — not merely that the bucket exists.
+A dataset is GO when **≥1** configured case is covered (the loader caches every covered case and
+skips gappy ones). `train.ipynb` / `eval.ipynb` call this automatically before downloading.
+
+> Coverage note: single-radar NEXRAD VCP switches can open >5-min gaps over a long window, so
+> OOD downloads/evals use the **120-min headline horizon** (`out_frames=12`, T=25), which is the
+> standard cross-dataset comparison window and is gap-free for the built-in cases. The 245-min
+> long-lead window (`out_frames=36`) is used for SEVIR in-distribution analysis.
+
+---
+
 ## Layout
 
 ```
 datasets/
   README.md            # this guide
+  check_access.py      # no-deps HTTPS preflight: are all 3 reachable + OOD windows covered?
   download_sevir.py    # SEVIR CLI  -> datasets/sevir/cache (+ raw)
   download_nexrad.py   # NEXRAD CLI -> datasets/nexrad/cache
   download_mrms.py     # MRMS CLI   -> datasets/mrms/cache
