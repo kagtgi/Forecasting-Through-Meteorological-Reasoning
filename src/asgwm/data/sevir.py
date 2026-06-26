@@ -396,7 +396,11 @@ def _download_real_sevir(cfg: Config, limit: int) -> List[str]:  # pragma: no co
             fname, fidx = ent
             local = os.path.join(raw_root, os.path.basename(str(fname)))
             if not os.path.exists(local):
-                fs.get(f"sevir/{fname}", local)
+                # SEVIR HDF5 files live under the bucket's data/ prefix, but CATALOG.csv's
+                # file_name column omits it (e.g. "vil/2019/SEVIR_VIL_*.h5"). Prepend data/
+                # so the key resolves (verified live: s3://sevir/data/vil/2019/...).
+                key = str(fname) if str(fname).startswith("data/") else f"data/{fname}"
+                fs.get(f"sevir/{key}", local)
             with h5py.File(local, "r") as hf:  # type: ignore[union-attr]
                 if it not in hf:
                     continue
