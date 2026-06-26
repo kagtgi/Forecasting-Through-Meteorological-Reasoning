@@ -1,0 +1,148 @@
+# ASG-WM default configuration. Override any field with key.subkey=value on the CLI,
+# e.g.  python scripts/10_train_tier0.py --override train.tier0.max_steps=2000
+# Paths default to a Colab/Drive layout; point `paths.root` at your bucket/Drive mount.
+
+seed: 1234
+device: auto          # auto -> CUDA if available (e.g. RTX 4060), else CPU; or set cuda/cpu
+
+paths:
+  root: ./artifacts                 # persistent bucket / Drive mount root
+  sevir_raw: ./artifacts/sevir_raw  # downloaded SEVIR HDF5 slice
+  cache: ./artifacts/cache          # ASG labels, context slices, advection, features
+  checkpoints: ./artifacts/ckpt
+  results: ./artifacts/results
+  gold_subset: ./artifacts/gold     # hand-labeled ASG gold set (held out)
+
+data:
+  # 'sevir' / 'synthetic' = train+test source (synthetic = offline fallback).
+  # 'nexrad' / 'mrms'     = out-of-distribution generalization TEST sets (real data only,
+  #                          no synthetic fallback; cached under events_<dataset>/).
+  dataset: sevir
+  require_real: false        # if true, a real-data load failure RAISES instead of falling back
+  grid: 384                         # canonical resolution (SEVIR-native; matches Earthformer)
+  km_per_pixel: 1.0
+  minutes_per_frame: 5
+  # Canonical I/O (datasets/README.md): the HEADLINE Earthformer-matched benchmark is
+  # in_frames=13 (65 min) -> 12 frames (60 min). out_frames=36 below is the EXTENDED
+  # long-lead config (180 min) for the long-horizon + OOD study; set out_frames=12 to
+  # reproduce the headline comparison table exactly.
+  in_frames: 13                     # 65 min context (k)
+  out_frames: 36                    # 180 min long-lead horizon (n); use 12 for headline
+  horizon_min: 60                   # default transition horizon h (min)
+  channels: [vil, ir069, ir107, glm]
+  rainy_fraction_min: 0.10          # mild curation: >=10% rainy pixels in >=50% frames
+  rainy_frame_fraction: 0.50
+  n_train_events: 2500
+  patch: 128                        # renderer training patch size
+  vil_clip: [0.0, 255.0]            # canonical channel = SEVIR VIL byte [0,255]; model in = /255
+  # SEVIR temporal split (Earthformer/PreDiff): train < 2019-01-01, val 2019-01..05,
+  # test >= 2019-06-01. NEXRAD/MRMS are used entirely as OOD test (not split).
+  nexrad:                           # OOD set: NEXRAD Level II (s3://unidata-nexrad-level2)
+    dz_eff_m: 4000.0                # effective depth for the dBZ->VIL bridge (report this)
+    cases: null                     # null -> built-in severe cases; else list of
+                                    #   {station, date: YYYYMMDD, start: HHMMSS}
+  mrms:                             # OOD set: MRMS MergedReflectivityQCComposite (s3://noaa-mrms-pds)
+    dz_eff_m: 4000.0                # archive starts 2020-10-14
+    cases: null                     # null -> built-in cases; else list of
+                                    #   {date: YYYYMMDD, start: HHMMSS, lat, lon}
+
+asg:
+  n_max: 16                         # hard object budget (IB cap)
+  motion_quant_kmh: 8.0
+  growth_sigfigs: 2
+  growth_field_size: 48             # H' = W' for the low-res growth field
+  context_fields: [cape, cin, shear, pwat, dem]
+
+stage_a:                            # VLM perception — Observe + Identify steps
+  backbone: HuggingFaceTB/SmolVLM-2.2B-Instruct
+  backbone_alt: Qwen/Qwen2.5-VL-3B-Instruct
+  load_in_4bit: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  asg_loss_weight: 0.8              # 80% ASG tokens / 20% NL tokens
+  nl_loss_weight: 0.2
+  max_new_tokens: 512
+  constrained_decoding: true
+  use_explicit_tracker: true        # route generate_asg through Identify -> Track pipeline
+  per_frame_full: false             # if true, run VLM on every input frame (expensive; k passes/event)
+
+stage_a2:                           # Explicit Object Tracker — Track step
+  gate_radius: 32.0                 # max centroid distance (px) for frame-to-frame association
+  min_track_frames: 1               # minimum track length to include in ASG_t
+
+stage_b:                            # transition transformer
+  d_model: 256
+  n_layers: 6
+  n_heads: 8
+  d_ff: 1024
+  dropout: 0.1
+  obj_feat_dim: 8                   # StormObject.to_vector length
+  context_dim: 5
+  predict_residual: true           # predict residual on top of advection
+  lambda_continuity: 0.1
+  lambda_smooth: 0.01
+
+stage_c:                            # renderer
+  vae: stabilityai/sd-vae-ft-mse
+  vae_downscale: 8
+  latent_channels: 4
+  unet_base: 128
+  flow_steps: 4                     # few-step rectified flow (1-4)
+  ensemble_k: 10                    # ensemble members for CRPS
+
+bottleneck:
+  use_growth_field: true
+  lambda_ib: 0.01                   # soft variational penalty weight
+
+losses:                            # Tier-2 loss weights (training_method.md section 4)
+  lambda_ib: 0.01
+  lambda_intervene: 1.0
+  lambda_mass: 0.1
+  lambda_nonneg: 1.0
+  lambda_spectral: 0.05
+  lambda_continuity: 0.1
+
+train:
+  precision: bf16
+  grad_checkpointing: true
+  tier0:
+    batch_size: 32
+    lr: 3.0e-4
+    max_steps: 20000
+    ckpt_every: 1000
+    renderer_max_steps: 15000
+  tier1:
+    micro_batch: 2
+    grad_accum: 8
+    lr: 1.0e-4
+    phases: [ph1_vqa, ph2_desc, ph3_asg, ph4_cot, ph5_eqcot]
+    ph3_gate_f1: 0.70               # hard gate before Ph-4
+    steps_per_phase: {ph1_vqa: 3000, ph2_desc: 3000, ph3_asg: 6000, ph4_cot: 6000, ph5_eqcot: 4000}
+    max_steps_per_phase: null       # scalar cap for time-boxed FIRST_RUN (null = use steps_per_phase)
+  tier2:
+    batch_size: 8
+    lr: 1.0e-5                      # low-LR / stop-grad on the VLM
+    max_steps: 30000
+    ckpt_every: 500
+    scheduled_sampling: true        # oracle -> inferred ASG anneal
+    oracle_anneal_steps: 8000
+    intervention_consistency: true
+    intervene_warmup_steps: 2000    # ramp the intervention-consistency weight 0 -> lambda over these steps
+    intervene_every: 1              # compute the (expensive, 2-render) intervention loss every k steps (raise to save compute)
+    log_every: 50                   # per-term loss logging cadence (catch divergence early)
+
+eval:
+  thresholds_dbz: [16, 35, 45]      # internal dBZ-mapped analysis (vil_to_dbz scale)
+  # Standard SEVIR-VIL CSI thresholds on the raw 0-255 byte scale (Earthformer/PreDiff/
+  # DiffCast/CasCast). Use THESE for the headline comparison table so CSI matches the
+  # published baselines exactly (threshold in byte space, not kg/m^2 or remapped dBZ).
+  csi_thresholds_vil: [16, 74, 133, 160, 181, 219]
+  fss_scales: [4, 16]
+  lead_times_min: [30, 60, 90, 120, 150, 180]
+  regimes: [init, grow, decay, steady]
+  ensemble_k: 10
+  capacity_sweep_nmax: [2, 4, 8, 16, 32]
+  intervention_types: [translate, regime_flip, growth_scale, motion_rotate]
+  spatial_tol_km: 10.0
+  intensity_tol_dbz: 3.0

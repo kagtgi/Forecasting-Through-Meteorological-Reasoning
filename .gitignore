@@ -1,0 +1,79 @@
+# ---------------------------------------------------------------------------
+# ASG-WM / FaithCast — repository ignore rules
+# Keep CODE and small assets in git; keep DATA, checkpoints, and build junk out.
+# ---------------------------------------------------------------------------
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.installed.cfg
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- Virtual envs ---
+.venv/
+venv/
+env/
+.env
+
+# --- Datasets: download scripts, READMEs & dir skeleton (.gitkeep) are tracked;
+#     the downloaded DATA (per-dataset cache/ + raw/ subdirs and data files) is not ---
+datasets/**/cache/
+datasets/**/raw/
+datasets/raw/
+datasets/processed/
+datasets/**/*.h5
+datasets/**/*.hdf5
+datasets/**/*.npz
+datasets/**/*.npy
+datasets/**/*.nc
+datasets/**/*.grib2
+datasets/**/*.grib2.gz
+datasets/**/*.gz
+datasets/**/CATALOG.csv
+
+# --- Generated artifacts (results, caches, checkpoints) ---
+artifacts/
+src/artifacts/
+**/cache/
+**/ckpt/
+**/checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# --- Result bundles produced by the notebooks (regenerate, don't commit) ---
+train_results*.zip
+eval_results*.zip
+paper_assets*.zip
+
+# --- LaTeX build junk (keep paper.tex, references.bib, figures, paper.pdf) ---
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# --- Claude Code session config ---
+.claude/

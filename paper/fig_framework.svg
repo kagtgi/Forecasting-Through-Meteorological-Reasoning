@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="250" viewBox="0 0 880 250">
+<text font-family="Helvetica,Arial,sans-serif" font-size="19" fill="#202124" x="440.0" y="26.0" text-anchor="middle" font-weight="700" dominant-baseline="central">ASG-WM reasoning framework</text>
+<rect x="20.0" y="78.0" width="146.0" height="104.0" rx="8" fill="#F1F3F4" stroke="#5F6368" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#3C4043" x="93.0" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">1  Observe</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="93.0" y="120.0" text-anchor="middle" dominant-baseline="central">multi-frame</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="93.0" y="139.0" text-anchor="middle" dominant-baseline="central">X(t) ingest</text>
+<line x1="170.0" y1="130.0" x2="180.5" y2="130.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="189.5,130.0 180.5,134.1 180.5,126.0" fill="#5F6368"/>
+<rect x="193.5" y="78.0" width="146.0" height="104.0" rx="8" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#5B1C9E" x="266.5" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">2  Identify</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="266.5" y="120.0" text-anchor="middle" dominant-baseline="central">per-frame</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="266.5" y="139.0" text-anchor="middle" dominant-baseline="central">VLM objects</text>
+<line x1="343.5" y1="130.0" x2="354.0" y2="130.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="363.0,130.0 354.0,134.1 354.0,126.0" fill="#5F6368"/>
+<rect x="367.0" y="78.0" width="146.0" height="104.0" rx="8" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#5B1C9E" x="440.0" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">3  Track</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="440.0" y="120.0" text-anchor="middle" dominant-baseline="central">trajectory</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="440.0" y="139.0" text-anchor="middle" dominant-baseline="central">IDs + velocity</text>
+<line x1="517.0" y1="130.0" x2="527.5" y2="130.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="536.5,130.0 527.5,134.1 527.5,126.0" fill="#5F6368"/>
+<rect x="540.5" y="78.0" width="146.0" height="104.0" rx="8" fill="#FEF7E0" stroke="#E37400" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#8A4B00" x="613.5" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">4  Analyze</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="613.5" y="120.0" text-anchor="middle" dominant-baseline="central">physics</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="613.5" y="139.0" text-anchor="middle" dominant-baseline="central">transition</text>
+<line x1="690.5" y1="130.0" x2="701.0" y2="130.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="710.0,130.0 701.0,134.1 701.0,126.0" fill="#5F6368"/>
+<rect x="714.0" y="78.0" width="146.0" height="104.0" rx="8" fill="#E1F4F0" stroke="#12806A" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#0A5446" x="787.0" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">5  Nowcast</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="787.0" y="120.0" text-anchor="middle" dominant-baseline="central">renderer</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="787.0" y="139.0" text-anchor="middle" dominant-baseline="central">X(t+h)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="526.8" y="116.0" text-anchor="middle" font-style="italic" dominant-baseline="central">ASG(t)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="700.2" y="116.0" text-anchor="middle" font-style="italic" dominant-baseline="central">ASG(t+h)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="440.0" y="216.0" text-anchor="middle" dominant-baseline="central">Identify (step 2) answers only 'what is here now?'; Track (step 3) answers 'where and how fast?'.</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="440.0" y="232.0" text-anchor="middle" dominant-baseline="central">The structured ASG(t) state is the only causal path to Nowcast; chain-of-thought is training-time only.</text>
+</svg>

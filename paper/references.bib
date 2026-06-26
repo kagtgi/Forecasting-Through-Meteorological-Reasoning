@@ -1,0 +1,692 @@
+% ============================================================
+% references.bib
+% Verified citation library for the FaithCast / ASG-WM project
+% (Faithful reasoning precipitation nowcasting via a materialized
+%  Atmospheric Scene Graph world model).
+% Keys match citations in idea.md / architecture.md / datasource.md /
+% training_method.md / eval.md.
+%
+% VERIFIED items only. Three earlier-flagged items resolved:
+%   - LangPrecip-160K  -> VERIFIED (Ling et al., arXiv 2512.22317)
+%   - arXiv 2512.17924 -> DID NOT VERIFY (omitted; use DGMR UK radar instead)
+%   - MeteoCap-3B       -> NOT VERIFIED (omitted)
+% A few items are conference/dataset resources; pagination/edition noted where
+% it should be confirmed before camera-ready.
+% ============================================================
+
+% ---------- DATASETS ----------
+
+@inproceedings{veillette2020sevir,
+  title     = {{SEVIR}: A Storm Event Imagery Dataset for Deep Learning Applications in Radar and Satellite Meteorology},
+  author    = {Veillette, Mark S. and Samsi, Siddharth and Mattioli, Christopher J.},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {33},
+  year      = {2020},
+  url       = {https://proceedings.neurips.cc/paper/2020/hash/fa78a16157fed00d7a80515818432169-Abstract.html},
+  note      = {US/CONUS; VIL radar + GOES-16 IR069/IR107/VIS + GLM lightning; AWS Open Data s3://sevir}
+}
+
+@inproceedings{shi2017trajgru,
+  title     = {Deep Learning for Precipitation Nowcasting: A Benchmark and A New Model},
+  author    = {Shi, Xingjian and Gao, Zhihan and Lausen, Leonard and Wang, Hao and Yeung, Dit-Yan and Wong, Wai-Kin and Woo, Wang-Chun},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2017},
+  eprint    = {1706.03458},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1706.03458},
+  note      = {Introduces TrajGRU and the HKO-7 Hong Kong Observatory radar benchmark}
+}
+
+@misc{larvor2020meteonet,
+  title  = {{MeteoNet}: An Open Reference Weather Dataset by M\'et\'eo-France},
+  author = {Larvor, Gwenna\"el and Berthomier, L\'ea and Chabot, Vincent and Le Pape, Brice and Pradel, Bruno and Perez, Lior},
+  year   = {2020},
+  howpublished = {M\'et\'eo-France open data},
+  url    = {https://meteonet.umr-cnrm.fr/},
+  note   = {Radar, satellite, NWP, ground stations, topography; Etalab Open Licence 2.0}
+}
+
+@misc{noaa_hrrr,
+  title        = {{NOAA} High-Resolution Rapid Refresh ({HRRR}) Model},
+  author       = {{NOAA}},
+  howpublished = {AWS Open Data Registry, bucket noaa-hrrr-bdp-pds},
+  url          = {https://registry.opendata.aws/noaa-hrrr-pds/},
+  note         = {3 km convection-allowing; CAPE, CIN, winds (shear) in GRIB2}
+}
+
+@inproceedings{carver2023arco,
+  title     = {{ARCO-ERA5}: An Analysis-Ready Cloud-Optimized Reanalysis Dataset},
+  author    = {Carver, Robert and Merose, Alex},
+  booktitle = {22nd Conference on Artificial Intelligence for Environmental Science, American Meteorological Society},
+  year      = {2023},
+  url       = {https://github.com/google-research/arco-era5},
+  note      = {Google Cloud public gs://gcp-public-data-arco-era5; CAPE/PWAT/winds/shear. Confirm pagination for camera-ready.}
+}
+
+@misc{copernicus_dem,
+  title        = {Copernicus {DEM} {GLO-30} (Global 30 m Digital Elevation Model)},
+  author       = {{European Space Agency} and {Airbus}},
+  howpublished = {AWS Open Data Registry, bucket copernicus-dem-30m},
+  url          = {https://registry.opendata.aws/copernicus-dem/},
+  note         = {Static topography, Cloud-Optimized GeoTIFF}
+}
+
+@misc{iem_afd,
+  title        = {{NWS} Text Product Archive (Area Forecast Discussions)},
+  author       = {{Iowa Environmental Mesonet, Iowa State University}},
+  howpublished = {IEM text-product archive and API},
+  url          = {https://mesonet.agron.iastate.edu/api/},
+  note         = {Queryable by WFO/AFOS PIL and time; AFDs issued a few times/day = synoptic-period context, not per-frame labels}
+}
+
+@misc{noaa_storm_events,
+  title        = {{NOAA} Storm Events Database},
+  author       = {{NOAA National Centers for Environmental Information (NCEI)}},
+  howpublished = {NCEI bulk CSV},
+  url          = {https://www.ncei.noaa.gov/stormevents/},
+  note         = {Coverage 1950--present; SEVIR events matched to this database}
+}
+
+@article{pulkkinen2019pysteps,
+  title   = {Pysteps: An Open-Source {Python} Library for Probabilistic Precipitation Nowcasting (v1.0)},
+  author  = {Pulkkinen, Seppo and Nerini, Daniele and P\'erez Hortal, Andr\'es A. and Velasco-Forero, Carlos and Seed, Alan and Germann, Urs and Foresti, Loris},
+  journal = {Geoscientific Model Development},
+  volume  = {12},
+  number  = {10},
+  pages   = {4185--4219},
+  year    = {2019},
+  doi     = {10.5194/gmd-12-4185-2019},
+  note    = {Optical flow, cell tracking, S-PROG, STEPS, advection; CPU-side ASG labeling}
+}
+
+@article{smith2016mrms,
+  title   = {Multi-Radar Multi-Sensor ({MRMS}) Severe Weather and Aviation Products: Initial Operating Capabilities},
+  author  = {Smith, Travis M. and Lakshmanan, Valliappa and Stumpf, Gregory J. and Ortega, Kiel L. and Hondl, Kurt and Cooper, Karen and Calhoun, Kristin M. and Kingfield, Darrel M. and Manross, Kevin L. and Toomey, Robert and Brogden, Jeff},
+  journal = {Bulletin of the American Meteorological Society},
+  volume  = {97},
+  number  = {9},
+  pages   = {1617--1630},
+  year    = {2016},
+  doi     = {10.1175/BAMS-D-14-00173.1},
+  note    = {~1 km / 2 min over CONUS; live feed short-retention, multi-year archives exist}
+}
+
+% ---------- NOWCASTING BASELINES / SOTA ----------
+
+@inproceedings{shi2015convlstm,
+  title     = {Convolutional {LSTM} Network: A Machine Learning Approach for Precipitation Nowcasting},
+  author    = {Shi, Xingjian and Chen, Zhourong and Wang, Hao and Yeung, Dit-Yan and Wong, Wai-Kin and Woo, Wang-Chun},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2015},
+  eprint    = {1506.04214},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1506.04214}
+}
+
+@inproceedings{wang2017predrnn,
+  title     = {{PredRNN}: Recurrent Neural Networks for Predictive Learning Using Spatiotemporal {LSTM}s},
+  author    = {Wang, Yunbo and Long, Mingsheng and Wang, Jianmin and Gao, Zhifeng and Yu, Philip S.},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  pages     = {879--888},
+  year      = {2017},
+  url       = {https://papers.nips.cc/paper/2017}
+}
+
+@inproceedings{wang2018predrnnpp,
+  title     = {{PredRNN++}: Towards a Resolution of the Deep-in-Time Dilemma in Spatiotemporal Predictive Learning},
+  author    = {Wang, Yunbo and Gao, Zhifeng and Long, Mingsheng and Wang, Jianmin and Yu, Philip S.},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  series    = {PMLR},
+  volume    = {80},
+  year      = {2018},
+  eprint    = {1804.06300},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1804.06300}
+}
+
+@article{ayzel2020rainnet,
+  title   = {{RainNet} v1.0: A Convolutional Neural Network for Radar-Based Precipitation Nowcasting},
+  author  = {Ayzel, Georgy and Scheffer, Tobias and Heistermann, Maik},
+  journal = {Geoscientific Model Development},
+  volume  = {13},
+  number  = {6},
+  pages   = {2631--2644},
+  year    = {2020},
+  doi     = {10.5194/gmd-13-2631-2020}
+}
+
+@article{trebing2021smaatunet,
+  title   = {{SmaAt-UNet}: Precipitation Nowcasting Using a Small Attention-{UNet} Architecture},
+  author  = {Trebing, Kevin and Sta\'nczyk, Tomasz and Mehrkanoon, Siamak},
+  journal = {Pattern Recognition Letters},
+  volume  = {145},
+  pages   = {178--186},
+  year    = {2021},
+  doi     = {10.1016/j.patrec.2021.01.036},
+  eprint  = {2007.04417},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{gao2022earthformer,
+  title     = {{Earthformer}: Exploring Space-Time Transformers for Earth System Forecasting},
+  author    = {Gao, Zhihan and Shi, Xingjian and Wang, Hao and Zhu, Yi and Wang, Yuyang and Li, Mu and Yeung, Dit-Yan},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2022},
+  eprint    = {2207.05833},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2207.05833}
+}
+
+@misc{sonderby2020metnet,
+  title  = {{MetNet}: A Neural Weather Model for Precipitation Forecasting},
+  author = {S{\o}nderby, Casper Kaae and Espeholt, Lasse and Heek, Jonathan and Dehghani, Mostafa and Oliver, Avital and Salimans, Tim and Agrawal, Shreya and Hickey, Jason and Kalchbrenner, Nal},
+  year   = {2020},
+  eprint = {2003.12140},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2003.12140}
+}
+
+@article{espeholt2022metnet2,
+  title   = {Deep Learning for Twelve Hour Precipitation Forecasts},
+  author  = {Espeholt, Lasse and Agrawal, Shreya and S{\o}nderby, Casper and Kumar, Manoj and Heek, Jonathan and Bromberg, Carla and Gazen, Cenk and Carver, Robert and Andrychowicz, Marcin and Hickey, Jason and Bell, Aaron and Kalchbrenner, Nal},
+  journal = {Nature Communications},
+  volume  = {13},
+  pages   = {5145},
+  year    = {2022},
+  doi     = {10.1038/s41467-022-32483-x}
+}
+
+@misc{andrychowicz2023metnet3,
+  title  = {Deep Learning for Day Forecasts from Sparse Observations},
+  author = {Andrychowicz, Marcin and Espeholt, Lasse and Li, Da and Merchant, Samier and Merose, Alexander and Zyda, Fred and Agrawal, Shreya and Kalchbrenner, Nal},
+  year   = {2023},
+  eprint = {2306.06079},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2306.06079},
+  note   = {MetNet-3; public reproduction limited}
+}
+
+@article{ravuri2021dgmr,
+  title   = {Skilful Precipitation Nowcasting Using Deep Generative Models of Radar},
+  author  = {Ravuri, Suman and Lenc, Karel and Willson, Matthew and Kangin, Dmitry and Lam, Remi and Mirowski, Piotr and Fitzsimons, Megan and Athanassiadou, Maria and Kashem, Sheleem and Madge, Sam and Prudden, Rachel and Mandhane, Amol and Clark, Aidan and Brock, Andrew and Simonyan, Karen and Hadsell, Raia and Robinson, Niall and Clancy, Ellen and Arribas, Alberto and Mohamed, Shakir},
+  journal = {Nature},
+  volume  = {597},
+  number  = {7878},
+  pages   = {672--677},
+  year    = {2021},
+  doi     = {10.1038/s41586-021-03854-z},
+  eprint  = {2104.00954},
+  archivePrefix = {arXiv},
+  note    = {DGMR; UK Met Office RadarNet4 composites; 56-forecaster study; pooled CSI/CRPS}
+}
+
+@article{zhang2023nowcastnet,
+  title   = {Skilful Nowcasting of Extreme Precipitation with {NowcastNet}},
+  author  = {Zhang, Yuchen and Long, Mingsheng and Chen, Kaiyuan and Xing, Lanxiang and Jin, Ronghua and Jordan, Michael I. and Wang, Jianmin},
+  journal = {Nature},
+  volume  = {619},
+  number  = {7970},
+  pages   = {526--532},
+  year    = {2023},
+  doi     = {10.1038/s41586-023-06184-4},
+  note    = {Evolution network: advection + continuity-style conservation; 62-forecaster study}
+}
+
+@misc{leinonen2023ldcast,
+  title  = {Latent Diffusion Models for Generative Precipitation Nowcasting with Accurate Uncertainty Quantification},
+  author = {Leinonen, Jussi and Hamann, Ulrich and Nerini, Daniele and Germann, Urs and Franch, Gabriele},
+  year   = {2023},
+  eprint = {2304.12891},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2304.12891}
+}
+
+@inproceedings{gong2024cascast,
+  title     = {{CasCast}: Skillful High-Resolution Precipitation Nowcasting via Cascaded Modelling},
+  author    = {Gong, Junchao and Bai, Lei and Ye, Peng and Xu, Wanghan and Liu, Na and Dai, Jianhao and Yang, Xiaokang and Ouyang, Wanli},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  series    = {PMLR},
+  volume    = {235},
+  pages     = {15809--15822},
+  year      = {2024},
+  eprint    = {2402.04290},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2402.04290}
+}
+
+@inproceedings{gao2023prediff,
+  title     = {{PreDiff}: Precipitation Nowcasting with Latent Diffusion Models},
+  author    = {Gao, Zhihan and Shi, Xingjian and Han, Boran and Wang, Hao and Jin, Xiaoyong and Maddix, Danielle and Zhu, Yi and Li, Mu and Wang, Yuyang},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023},
+  eprint    = {2307.10422},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2307.10422},
+  note      = {Knowledge-alignment control mechanism (post-hoc); contrast with faithful bottleneck}
+}
+
+@inproceedings{yu2024diffcast,
+  title     = {{DiffCast}: A Unified Framework via Residual Diffusion for Precipitation Nowcasting},
+  author    = {Yu, Demin and Li, Xutao and Ye, Yunming and Zhang, Baoquan and Luo, Chuyao and Dai, Kuai and Wang, Rui and Chen, Xunlai},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {27758--27767},
+  year      = {2024},
+  doi       = {10.1109/CVPR52733.2024.02622},
+  eprint    = {2312.06734},
+  archivePrefix = {arXiv},
+  note      = {Deterministic + residual-diffusion decomposition}
+}
+
+@article{franch2025gptcast,
+  title   = {{GPTCast}: A Weather Language Model for Precipitation Nowcasting},
+  author  = {Franch, Gabriele and Tomasi, Elena and Wanjari, Rishabh and Poli, Virginia and Cardinali, Chiara and Alberoni, Pier Paolo and Cristoforetti, Marco},
+  journal = {Geoscientific Model Development},
+  volume  = {18},
+  year    = {2025},
+  doi     = {10.5194/gmd-18-5351-2025},
+  eprint  = {2407.02089},
+  archivePrefix = {arXiv},
+  url     = {https://arxiv.org/abs/2407.02089},
+  note    = {VQGAN tokenizer + GPT forecaster; LLM-architecture, no language reasoning}
+}
+
+% ---------- LANGUAGE-NOWCASTING LANDSCAPE (the four occupied slots) ----------
+
+@misc{ling2025langprecip,
+  title  = {{LangPrecip}: Language-Aware Multimodal Precipitation Nowcasting},
+  author = {Ling, Xudong and Huang, Tianxi and Dong, Qian and He, Tao and Li, Chaorong and Duan, Guiduo},
+  year   = {2025},
+  eprint = {2512.22317},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2512.22317},
+  note   = {``First language-guided precipitation nowcasting''; LangPrecip-160K (100K Swedish + 60K MRMS); Rectified Flow + wavelet-consistency decoder; text fed in as constraint}
+}
+
+@misc{lee2025skewt,
+  title  = {Exploring Multimodal {AI} Reasoning for Meteorological Forecasting from {Skew-T} Diagrams},
+  author = {Lee, ChangJae and Yang, Heecheol and Choi, Jonghak},
+  year   = {2025},
+  eprint = {2508.12198},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2508.12198},
+  note   = {SmolLM2 + SmolVLM + LoRA; curriculum VQA -> CoT; outputs 4-class precipitation probability from soundings, not a field}
+}
+
+@misc{aimeteorologist2025,
+  title  = {A Modular {LLM}-Agent System for Transparent Multi-Parameter Weather Interpretation ({AI-Meteorologist})},
+  author = {{AI-Meteorologist authors}},
+  year   = {2025},
+  eprint = {2512.11819},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2512.11819},
+  note   = {In-context prompting, no fine-tuning; explains numerical forecasts as narratives; does not generate the field. Confirm author list for camera-ready.}
+}
+
+@misc{makarov2025hierarchical,
+  title  = {Hierarchical {AI-Meteorologist}: {LLM}-Agent System for Multi-Scale and Explainable Weather Forecast Reporting},
+  author = {Makarov, Ilya and others},
+  year   = {2025},
+  eprint = {2511.23387},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2511.23387},
+  note   = {Hourly/six-hourly/daily narrative interpretation; explanation, not field generation}
+}
+
+% ---------- WORLD MODELS ----------
+
+@inproceedings{ha2018worldmodels,
+  title     = {Recurrent World Models Facilitate Policy Evolution},
+  author    = {Ha, David and Schmidhuber, J\"urgen},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2018},
+  eprint    = {1809.01999},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1809.01999},
+  note      = {Also ``World Models'', arXiv 1803.10122}
+}
+
+@inproceedings{hafner2021dreamerv2,
+  title     = {Mastering {Atari} with Discrete World Models},
+  author    = {Hafner, Danijar and Lillicrap, Timothy and Norouzi, Mohammad and Ba, Jimmy},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  eprint    = {2010.02193},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2010.02193}
+}
+
+@misc{hafner2023dreamerv3,
+  title  = {Mastering Diverse Domains through World Models},
+  author = {Hafner, Danijar and Pasukonis, Jurgis and Ba, Jimmy and Lillicrap, Timothy},
+  year   = {2023},
+  eprint = {2301.04104},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2301.04104}
+}
+
+@inproceedings{kipf2020cswm,
+  title     = {Contrastive Learning of Structured World Models},
+  author    = {Kipf, Thomas and van der Pol, Elise and Welling, Max},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2020},
+  eprint    = {1911.12247},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1911.12247},
+  note      = {Object-centric / structured world model (explicit but latent state)}
+}
+
+% ---------- PHYSICS-INFORMED LEARNING ----------
+
+@article{raissi2019pinn,
+  title   = {Physics-Informed Neural Networks: A Deep Learning Framework for Solving Forward and Inverse Problems Involving Nonlinear Partial Differential Equations},
+  author  = {Raissi, Maziar and Perdikaris, Paris and Karniadakis, George E.},
+  journal = {Journal of Computational Physics},
+  volume  = {378},
+  pages   = {686--707},
+  year    = {2019},
+  doi     = {10.1016/j.jcp.2018.10.045}
+}
+
+% ---------- VLMs + EFFICIENT FINE-TUNING ----------
+
+@misc{marafioti2025smolvlm,
+  title  = {{SmolVLM}: Redefining Small and Efficient Multimodal Models},
+  author = {Marafioti, Andr\'es and Zohar, Orr and Farr\'e, Miquel and Noyan, Merve and Bakouch, Elie and Cuenca, Pedro and Zakka, Cyril and Ben Allal, Loubna and Lozhkov, Anton and Tazi, Nouamane and Srivastav, Vaibhav and Lochner, Joshua and Larcher, Hugo and Morlon, Mathieu and Tunstall, Lewis and von Werra, Leandro and Wolf, Thomas},
+  year   = {2025},
+  eprint = {2504.05299},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2504.05299},
+  note   = {256M--2.2B; LoRA/QLoRA finetunable on consumer GPUs}
+}
+
+@misc{allal2025smollm2,
+  title  = {{SmolLM2}: When Smol Goes Big -- Data-Centric Training of a Small Language Model},
+  author = {Ben Allal, Loubna and Lozhkov, Anton and Bakouch, Elie and Mart\'in Bl\'azquez, Gabriel and Penedo, Guilherme and Tunstall, Lewis and Marafioti, Andr\'es and Kydl\'i\v{c}ek, Hynek and Piqueres Lajar\'in, Agust\'in and Srivastav, Vaibhav and others},
+  year   = {2025},
+  eprint = {2502.02737},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2502.02737}
+}
+
+@misc{bai2025qwen25vl,
+  title  = {{Qwen2.5-VL} Technical Report},
+  author = {Bai, Shuai and Chen, Keqin and Liu, Xuejing and Wang, Jialin and Ge, Wenbin and Song, Sibo and Dang, Kai and Wang, Peng and Wang, Shijie and Tang, Jun and others},
+  year   = {2025},
+  eprint = {2502.13923},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2502.13923}
+}
+
+@misc{wang2024qwen2vl,
+  title  = {{Qwen2-VL}: Enhancing Vision-Language Model's Perception of the World at Any Resolution},
+  author = {Wang, Peng and Bai, Shuai and Tan, Sinan and Wang, Shijie and Fan, Zhihao and Bai, Jinze and Chen, Keqin and Liu, Xuejing and Wang, Jialin and Ge, Wenbin and others},
+  year   = {2024},
+  eprint = {2409.12191},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2409.12191}
+}
+
+@inproceedings{dettmers2023qlora,
+  title     = {{QLoRA}: Efficient Finetuning of Quantized {LLM}s},
+  author    = {Dettmers, Tim and Pagnoni, Artidoro and Holtzman, Ari and Zettlemoyer, Luke},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023},
+  eprint    = {2305.14314},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2305.14314},
+  note      = {NF4 4-bit; enables 33B finetuning on a single 24 GB GPU}
+}
+
+@inproceedings{hu2022lora,
+  title     = {{LoRA}: Low-Rank Adaptation of Large Language Models},
+  author    = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022},
+  eprint    = {2106.09685},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2106.09685}
+}
+
+% ---------- GENERATIVE RENDERERS ----------
+
+@inproceedings{liu2023rectifiedflow,
+  title     = {Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow},
+  author    = {Liu, Xingchao and Gong, Chengyue and Liu, Qiang},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  eprint    = {2209.03003},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2209.03003}
+}
+
+@inproceedings{lipman2023flowmatching,
+  title     = {Flow Matching for Generative Modeling},
+  author    = {Lipman, Yaron and Chen, Ricky T. Q. and Ben-Hamu, Heli and Nickel, Maximilian and Le, Matthew},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  eprint    = {2210.02747},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2210.02747}
+}
+
+@inproceedings{song2023consistency,
+  title     = {Consistency Models},
+  author    = {Song, Yang and Dhariwal, Prafulla and Chen, Mark and Sutskever, Ilya},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  series    = {PMLR},
+  volume    = {202},
+  year      = {2023},
+  eprint    = {2303.01469},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2303.01469}
+}
+
+@inproceedings{rombach2022ldm,
+  title     = {High-Resolution Image Synthesis with Latent Diffusion Models},
+  author    = {Rombach, Robin and Blattmann, Andreas and Lorenz, Dominik and Esser, Patrick and Ommer, Bj\"orn},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {10684--10695},
+  year      = {2022},
+  doi       = {10.1109/CVPR52688.2022.01042},
+  eprint    = {2112.10752},
+  archivePrefix = {arXiv},
+  note      = {SD-VAE; ~8x latent compression for the renderer}
+}
+
+@inproceedings{peebles2023dit,
+  title     = {Scalable Diffusion Models with Transformers},
+  author    = {Peebles, William and Xie, Saining},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  pages     = {4195--4205},
+  year      = {2023},
+  eprint    = {2212.09748},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2212.09748}
+}
+
+% ---------- EVALUATION METRICS ----------
+
+@book{jolliffe2012forecast,
+  title     = {Forecast Verification: A Practitioner's Guide in Atmospheric Science},
+  editor    = {Jolliffe, Ian T. and Stephenson, David B.},
+  edition   = {2nd},
+  publisher = {Wiley-Blackwell},
+  year      = {2012},
+  doi       = {10.1002/9781119960003},
+  note      = {CSI/HSS/POD/FAR. 1st ed. 2003 also valid -- pick one deliberately.}
+}
+
+@article{roberts2008fss,
+  title   = {Scale-Selective Verification of Rainfall Accumulations from High-Resolution Forecasts of Convective Events},
+  author  = {Roberts, Nigel M. and Lean, Humphrey W.},
+  journal = {Monthly Weather Review},
+  volume  = {136},
+  number  = {1},
+  pages   = {78--97},
+  year    = {2008},
+  doi     = {10.1175/2007MWR2123.1},
+  note    = {Fractions Skill Score (FSS)}
+}
+
+@article{gneiting2007crps,
+  title   = {Strictly Proper Scoring Rules, Prediction, and Estimation},
+  author  = {Gneiting, Tilmann and Raftery, Adrian E.},
+  journal = {Journal of the American Statistical Association},
+  volume  = {102},
+  number  = {477},
+  pages   = {359--378},
+  year    = {2007},
+  doi     = {10.1198/016214506000001437}
+}
+
+@article{hersbach2000crps,
+  title   = {Decomposition of the Continuous Ranked Probability Score for Ensemble Prediction Systems},
+  author  = {Hersbach, Hans},
+  journal = {Weather and Forecasting},
+  volume  = {15},
+  number  = {5},
+  pages   = {559--570},
+  year    = {2000},
+  doi     = {10.1175/1520-0434(2000)015<0559:DOTCRP>2.0.CO;2}
+}
+
+@inproceedings{zhang2018lpips,
+  title     = {The Unreasonable Effectiveness of Deep Features as a Perceptual Metric},
+  author    = {Zhang, Richard and Isola, Phillip and Efros, Alexei A. and Shechtman, Eli and Wang, Oliver},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {586--595},
+  year      = {2018},
+  eprint    = {1801.03924},
+  archivePrefix = {arXiv},
+  note      = {LPIPS perceptual metric}
+}
+
+@inproceedings{papineni2002bleu,
+  title     = {{BLEU}: A Method for Automatic Evaluation of Machine Translation},
+  author    = {Papineni, Kishore and Roukos, Salim and Ward, Todd and Zhu, Wei-Jing},
+  booktitle = {Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics (ACL)},
+  pages     = {311--318},
+  year      = {2002},
+  doi       = {10.3115/1073083.1073135},
+  note      = {Weak/secondary vs AFD text}
+}
+
+@inproceedings{lin2004rouge,
+  title     = {{ROUGE}: A Package for Automatic Evaluation of Summaries},
+  author    = {Lin, Chin-Yew},
+  booktitle = {Text Summarization Branches Out (ACL-04 Workshop)},
+  pages     = {74--81},
+  year      = {2004},
+  note      = {Weak/secondary vs AFD text}
+}
+
+% ---------- FAITHFULNESS / CHAIN-OF-THOUGHT / INFORMATION BOTTLENECK ----------
+
+@inproceedings{turpin2023cot,
+  title     = {Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting},
+  author    = {Turpin, Miles and Michael, Julian and Perez, Ethan and Bowman, Samuel R.},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {36},
+  pages     = {74952--74965},
+  year      = {2023},
+  eprint    = {2305.04388},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2305.04388}
+}
+
+@misc{lanham2023faithfulness,
+  title  = {Measuring Faithfulness in Chain-of-Thought Reasoning},
+  author = {Lanham, Tamera and Chen, Anna and Radhakrishnan, Ansh and Steiner, Benoit and Denison, Carson and Hernandez, Danny and Li, Dustin and Durmus, Esin and Hubinger, Evan and Kernion, Jackson and others},
+  year   = {2023},
+  eprint = {2307.13702},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2307.13702},
+  note   = {Counterfactual interventions on CoT (truncation, corruption)}
+}
+
+@misc{chen2025reasoning,
+  title  = {Reasoning Models Don't Always Say What They Think},
+  author = {Chen, Yanda and Benton, Joe and Radhakrishnan, Ansh and Uesato, Jonathan and Denison, Carson and Schulman, John and Somani, Arushi and Hase, Peter and Wagner, Misha and Roger, Fabien and Mikulik, Vlad and Bowman, Samuel R. and Leike, Jan and Kaplan, Jared and Hubinger, Evan},
+  year   = {2025},
+  eprint = {2505.05410},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2505.05410},
+  note   = {Anthropic; reasoning-model CoT unfaithfulness, restoration errors, unfaithful shortcuts}
+}
+
+@misc{chen2023counterfactual,
+  title  = {Do Models Explain Themselves? Counterfactual Simulatability of Natural Language Explanations},
+  author = {Chen, Yanda and Zhong, Ruiqi and Ri, Narutatsu and Zhao, Chen and He, He and Steinhardt, Jacob and Yu, Zhou and McKeown, Kathleen},
+  year   = {2023},
+  eprint = {2307.08678},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2307.08678},
+  note   = {Counterfactual simulatability framing for explanation faithfulness}
+}
+
+@misc{tishby1999ib,
+  title  = {The Information Bottleneck Method},
+  author = {Tishby, Naftali and Pereira, Fernando C. and Bialek, William},
+  year   = {2000},
+  eprint = {physics/0004057},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/physics/0004057},
+  note   = {Originally Proc. 37th Allerton Conf., 1999}
+}
+
+@inproceedings{tishby2015db,
+  title     = {Deep Learning and the Information Bottleneck Principle},
+  author    = {Tishby, Naftali and Zaslavsky, Noga},
+  booktitle = {IEEE Information Theory Workshop (ITW)},
+  year      = {2015},
+  eprint    = {1503.02406},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1503.02406}
+}
+
+@inproceedings{alemi2017vib,
+  title     = {Deep Variational Information Bottleneck},
+  author    = {Alemi, Alexander A. and Fischer, Ian and Dillon, Joshua V. and Murphy, Kevin},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2017},
+  eprint    = {1612.00410},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1612.00410},
+  note      = {VIB: Z as a minimal sufficient statistic of X for predicting Y}
+}
+
+@book{ipcc2021ar6,
+  title     = {Climate Change 2021: The Physical Science Basis.
+               Contribution of Working Group {I} to the Sixth Assessment Report
+               of the Intergovernmental Panel on Climate Change},
+  author    = {{IPCC}},
+  year      = {2021},
+  publisher = {Cambridge University Press},
+  doi       = {10.1017/9781009157896},
+  note      = {AR6 WGI; see esp.\ Ch.~11 (Weather and Climate Extreme Events) for
+               projected intensification of short-duration convective precipitation}
+}
+
+@inproceedings{cheng2020club,
+  title     = {{CLUB}: A Contrastive Log-ratio Upper Bound of Mutual Information},
+  author    = {Cheng, Pengyu and Hao, Weituo and Dai, Shuyang and Liu, Jiachang and Gan, Zhe and Carin, Lawrence},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2020},
+  url       = {https://proceedings.mlr.press/v119/cheng20b.html},
+  note      = {Variational upper bound on mutual information; used here for the conservative leakage audit}
+}
+
+@article{ta2025thor,
+  title     = {{ThoR}: A Motion-Dependent Physics-Informed Deep Learning Framework with
+               Constraint-Centric Theory of Functional Connections for Rainfall Nowcasting},
+  author    = {Ta Gia, Khang and Tran Van, Hoai and Phan Thanh, An and Phan Minh, Nhat},
+  journal   = {Scientific Reports},
+  volume    = {15},
+  number    = {1},
+  pages     = {42075},
+  year      = {2025},
+  doi       = {10.1038/s41598-025-26126-6},
+  publisher = {Nature Publishing Group},
+  note      = {Physics-informed nowcasting via Theory of Functional Connections;
+               advection--diffusion PDE soft constraint; MRMS and Nha Be radar}
+}

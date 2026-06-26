@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300">
+<text font-family="Helvetica,Arial,sans-serif" font-size="19" fill="#202124" x="360.0" y="24.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Lead-time decay (illustrative; TBR)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#202124" x="160.0" y="50.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Initiation regime</text>
+<line x1="56.0" y1="232.0" x2="308.0" y2="232.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="232.0" text-anchor="end" dominant-baseline="central">0.0</text>
+<line x1="56.0" y1="208.0" x2="308.0" y2="208.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="208.0" text-anchor="end" dominant-baseline="central">0.1</text>
+<line x1="56.0" y1="184.0" x2="308.0" y2="184.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="184.0" text-anchor="end" dominant-baseline="central">0.2</text>
+<line x1="56.0" y1="160.0" x2="308.0" y2="160.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="160.0" text-anchor="end" dominant-baseline="central">0.3</text>
+<line x1="56.0" y1="136.0" x2="308.0" y2="136.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="136.0" text-anchor="end" dominant-baseline="central">0.4</text>
+<line x1="56.0" y1="112.0" x2="308.0" y2="112.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="112.0" text-anchor="end" dominant-baseline="central">0.5</text>
+<line x1="56.0" y1="88.0" x2="308.0" y2="88.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="88.0" text-anchor="end" dominant-baseline="central">0.6</text>
+<line x1="56.0" y1="64.0" x2="308.0" y2="64.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="48.0" y="64.0" text-anchor="end" dominant-baseline="central">0.7</text>
+<line x1="56.0" y1="232.0" x2="308.0" y2="232.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="56.0" y="245.0" text-anchor="middle" dominant-baseline="central">0</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="98.0" y="245.0" text-anchor="middle" dominant-baseline="central">30</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="140.0" y="245.0" text-anchor="middle" dominant-baseline="central">60</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="182.0" y="245.0" text-anchor="middle" dominant-baseline="central">90</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="224.0" y="245.0" text-anchor="middle" dominant-baseline="central">120</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="266.0" y="245.0" text-anchor="middle" dominant-baseline="central">150</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="308.0" y="245.0" text-anchor="middle" dominant-baseline="central">180</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="160.0" y="262.0" text-anchor="middle" dominant-baseline="central">lead time (min)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="22.0" y="148.0" text-anchor="middle" dominant-baseline="central">CSI</text>
+<path d="M 56.0 100.0 L 98.0 112.0 L 140.0 126.4 L 182.0 138.4 L 224.0 150.4 L 266.0 160.0 L 308.0 167.2" fill="none" stroke="#8430CE" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="56.0" cy="100.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="98.0" cy="112.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="140.0" cy="126.4" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="182.0" cy="138.4" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="224.0" cy="150.4" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="266.0" cy="160.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="308.0" cy="167.2" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<path d="M 56.0 104.8 L 98.0 128.8 L 140.0 157.6 L 182.0 179.2 L 224.0 193.6 L 266.0 203.2 L 308.0 210.4" fill="none" stroke="#D93025" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 56.0 107.2 L 98.0 136.0 L 140.0 164.8 L 182.0 184.0 L 224.0 198.4 L 266.0 208.0 L 308.0 215.2" fill="none" stroke="#E37400" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 56.0 109.6 L 98.0 138.4 L 140.0 167.2 L 182.0 186.4 L 224.0 200.8 L 266.0 210.4 L 308.0 217.6" fill="none" stroke="#188038" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 56.0 124.0 L 98.0 164.8 L 140.0 193.6 L 182.0 210.4 L 224.0 220.0 L 266.0 224.8 L 308.0 227.2" fill="none" stroke="#5F6368" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#202124" x="518.0" y="50.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Steady regime</text>
+<line x1="414.0" y1="232.0" x2="666.0" y2="232.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="232.0" text-anchor="end" dominant-baseline="central">0.0</text>
+<line x1="414.0" y1="208.0" x2="666.0" y2="208.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="208.0" text-anchor="end" dominant-baseline="central">0.1</text>
+<line x1="414.0" y1="184.0" x2="666.0" y2="184.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="184.0" text-anchor="end" dominant-baseline="central">0.2</text>
+<line x1="414.0" y1="160.0" x2="666.0" y2="160.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="160.0" text-anchor="end" dominant-baseline="central">0.3</text>
+<line x1="414.0" y1="136.0" x2="666.0" y2="136.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="136.0" text-anchor="end" dominant-baseline="central">0.4</text>
+<line x1="414.0" y1="112.0" x2="666.0" y2="112.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="112.0" text-anchor="end" dominant-baseline="central">0.5</text>
+<line x1="414.0" y1="88.0" x2="666.0" y2="88.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="88.0" text-anchor="end" dominant-baseline="central">0.6</text>
+<line x1="414.0" y1="64.0" x2="666.0" y2="64.0" stroke="#E8EAED" stroke-width="1.0"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="12.5" fill="#5F6368" x="406.0" y="64.0" text-anchor="end" dominant-baseline="central">0.7</text>
+<line x1="414.0" y1="232.0" x2="666.0" y2="232.0" stroke="#9AA0A6" stroke-width="1.2"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="414.0" y="245.0" text-anchor="middle" dominant-baseline="central">0</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="456.0" y="245.0" text-anchor="middle" dominant-baseline="central">30</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="498.0" y="245.0" text-anchor="middle" dominant-baseline="central">60</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="540.0" y="245.0" text-anchor="middle" dominant-baseline="central">90</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="582.0" y="245.0" text-anchor="middle" dominant-baseline="central">120</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="624.0" y="245.0" text-anchor="middle" dominant-baseline="central">150</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="666.0" y="245.0" text-anchor="middle" dominant-baseline="central">180</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="518.0" y="262.0" text-anchor="middle" dominant-baseline="central">lead time (min)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="380.0" y="148.0" text-anchor="middle" dominant-baseline="central">CSI</text>
+<path d="M 414.0 88.0 L 456.0 100.0 L 498.0 112.0 L 540.0 124.0 L 582.0 133.6 L 624.0 143.2 L 666.0 150.4" fill="none" stroke="#8430CE" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="414.0" cy="88.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="456.0" cy="100.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="498.0" cy="112.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="540.0" cy="124.0" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="582.0" cy="133.6" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="624.0" cy="143.2" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<circle cx="666.0" cy="150.4" r="3.0" fill="#8430CE" stroke="#fff" stroke-width="1.4"/>
+<path d="M 414.0 73.6 L 456.0 88.0 L 498.0 102.4 L 540.0 116.8 L 582.0 128.8 L 624.0 138.4 L 666.0 148.0" fill="none" stroke="#D93025" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 414.0 76.0 L 456.0 90.4 L 498.0 104.8 L 540.0 119.2 L 582.0 131.2 L 624.0 140.8 L 666.0 150.4" fill="none" stroke="#E37400" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 414.0 78.4 L 456.0 92.8 L 498.0 107.2 L 540.0 121.6 L 582.0 133.6 L 624.0 143.2 L 666.0 152.8" fill="none" stroke="#188038" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 414.0 92.8 L 456.0 112.0 L 498.0 128.8 L 540.0 143.2 L 582.0 155.2 L 624.0 164.8 L 666.0 172.0" fill="none" stroke="#5F6368" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="150.0" y1="278.0" x2="168.0" y2="278.0" stroke="#8430CE" stroke-width="2.8"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="172.0" y="278.0" text-anchor="start" dominant-baseline="central">ASG-WM</text>
+<line x1="228.0" y1="278.0" x2="246.0" y2="278.0" stroke="#D93025" stroke-width="1.8"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="250.0" y="278.0" text-anchor="start" dominant-baseline="central">ThoR</text>
+<line x1="292.0" y1="278.0" x2="310.0" y2="278.0" stroke="#E37400" stroke-width="1.8"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="314.0" y="278.0" text-anchor="start" dominant-baseline="central">NowcastNet</text>
+<line x1="398.0" y1="278.0" x2="416.0" y2="278.0" stroke="#188038" stroke-width="1.8"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="420.0" y="278.0" text-anchor="start" dominant-baseline="central">LangPrecip</text>
+<line x1="504.0" y1="278.0" x2="522.0" y2="278.0" stroke="#5F6368" stroke-width="1.8"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="526.0" y="278.0" text-anchor="start" dominant-baseline="central">pysteps</text>
+</svg>

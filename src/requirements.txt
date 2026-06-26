@@ -1,0 +1,41 @@
+# ASG-WM dependencies. Tested target: Colab A100 (CUDA 12.x) / L4. torch is preinstalled
+# on Colab; pin only if reproducing locally.
+# --- core ---
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+pyyaml>=6.0
+tqdm>=4.65
+einops>=0.7
+# --- deep learning (preinstalled on Colab; listed for local installs) ---
+torch>=2.2
+torchvision>=0.17
+# --- VLM perception (Stage A) ---
+transformers>=4.46
+peft>=0.13
+accelerate>=1.0
+bitsandbytes>=0.44        # QLoRA NF4 4-bit
+sentencepiece>=0.2
+# constrained decoding for the ASG grammar (optional but recommended)
+lm-format-enforcer>=0.10
+# --- renderer (Stage C) ---
+diffusers>=0.31           # SD-VAE
+lpips>=0.1.4              # realism metric
+# --- meteorology / labeling ---
+pysteps>=1.10            # optical flow, tracking, advection (CPU)
+scikit-image>=0.22       # watershed segmentation
+h5py>=3.10               # SEVIR HDF5
+# --- data access / context ---
+xarray>=2024.1
+zarr>=2.17
+fsspec>=2024.2
+gcsfs>=2024.2            # ARCO-ERA5 (gs://)
+s3fs>=2024.2             # SEVIR / HRRR (s3://)
+boto3>=1.34             # NEXRAD / MRMS anonymous S3 (us-east-1)
+cfgrib>=0.9             # HRRR + MRMS GRIB2 fields
+eccodes>=1.7
+# --- OOD radar test sets (datasets/README.md) ---
+arm-pyart>=1.18         # NEXRAD Level II read + polar->Cartesian gridding (OOD test)
+# pyresample>=1.28       # optional: geometry-exact MRMS lat/lon -> LAEA 1km regrid
+# --- viz / figures ---
+matplotlib>=3.8

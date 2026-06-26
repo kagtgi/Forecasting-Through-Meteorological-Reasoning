@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="320" viewBox="0 0 720 320">
+<text font-family="Helvetica,Arial,sans-serif" font-size="19" fill="#202124" x="360.0" y="24.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Counterfactual ASG editing (schematic; TBR)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#202124" x="150.0" y="54.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Original -> forecast</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#202124" x="404.0" y="54.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Edited ASG</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#202124" x="626.0" y="54.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Difference</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#A50E0E" x="20.0" y="78.0" text-anchor="start" font-weight="700" dominant-baseline="central">Invert growth</text>
+<rect x="86.0" y="68.0" width="100.0" height="78.0" rx="8" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5B1C9E" x="136.0" y="88.0" text-anchor="middle" font-weight="700" dominant-baseline="central">ASG cell</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="136.0" y="110.0" text-anchor="middle" dominant-baseline="central">r=grow, g=+2</text>
+<rect x="196.0" y="68.0" width="52.0" height="78.0" rx="4" fill="#F1F3F4" stroke="#5F6368" stroke-width="0.8"/>
+<circle cx="222.0" cy="107.0" r="16.0" fill="#D93025" stroke="#fff" stroke-width="0.9"/>
+<line x1="254.0" y1="107.0" x2="265.0" y2="107.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="274.0,107.0 265.0,111.0 265.0,103.0" fill="#5F6368"/>
+<rect x="282.0" y="68.0" width="112.0" height="78.0" rx="8" fill="#FCE8E6" stroke="#D93025" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#A50E0E" x="338.0" y="88.0" text-anchor="middle" font-weight="700" dominant-baseline="central">edit</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="338.0" y="110.0" text-anchor="middle" dominant-baseline="central">g: +2 -> -2</text>
+<line x1="400.0" y1="107.0" x2="411.0" y2="107.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="420.0,107.0 411.0,111.0 411.0,103.0" fill="#5F6368"/>
+<rect x="496.0" y="68.0" width="150.0" height="78.0" rx="4" fill="#fff" stroke="#5F6368" stroke-width="0.8"/>
+<circle cx="560.0" cy="107.0" r="16.0" fill="#fff" stroke="#D93025" stroke-width="1.1"/>
+<circle cx="560.0" cy="107.0" r="9.0" fill="#FCE8E6" stroke="#D93025" stroke-width="0.9"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#A50E0E" x="571.0" y="137.0" text-anchor="middle" font-style="italic" dominant-baseline="central">weakens</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B57A8" x="20.0" y="160.0" text-anchor="start" font-weight="700" dominant-baseline="central">Translate</text>
+<rect x="86.0" y="150.0" width="100.0" height="78.0" rx="8" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5B1C9E" x="136.0" y="170.0" text-anchor="middle" font-weight="700" dominant-baseline="central">ASG cell</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="136.0" y="192.0" text-anchor="middle" dominant-baseline="central">r=grow, g=+2</text>
+<rect x="196.0" y="150.0" width="52.0" height="78.0" rx="4" fill="#F1F3F4" stroke="#5F6368" stroke-width="0.8"/>
+<circle cx="222.0" cy="189.0" r="16.0" fill="#1A73E8" stroke="#fff" stroke-width="0.9"/>
+<line x1="254.0" y1="189.0" x2="265.0" y2="189.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="274.0,189.0 265.0,193.1 265.0,184.9" fill="#5F6368"/>
+<rect x="282.0" y="150.0" width="112.0" height="78.0" rx="8" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B57A8" x="338.0" y="170.0" text-anchor="middle" font-weight="700" dominant-baseline="central">edit</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="338.0" y="192.0" text-anchor="middle" dominant-baseline="central">c shifts 20 km</text>
+<line x1="400.0" y1="189.0" x2="411.0" y2="189.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="420.0,189.0 411.0,193.1 411.0,184.9" fill="#5F6368"/>
+<rect x="496.0" y="150.0" width="150.0" height="78.0" rx="4" fill="#fff" stroke="#5F6368" stroke-width="0.8"/>
+<circle cx="542.0" cy="189.0" r="13.0" fill="#fff" stroke="#1A73E8" stroke-width="1.1"/>
+<line x1="557.0" y1="189.0" x2="569.0" y2="189.0" stroke="#1A73E8" stroke-width="1.4"/>
+<polygon points="575.0,189.0 569.0,191.7 569.0,186.3" fill="#1A73E8"/>
+<circle cx="584.0" cy="189.0" r="12.0" fill="#E8F0FE" stroke="#1A73E8" stroke-width="0.9"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B57A8" x="571.0" y="219.0" text-anchor="middle" font-style="italic" dominant-baseline="central">displaced</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#8A4B00" x="20.0" y="242.0" text-anchor="start" font-weight="700" dominant-baseline="central">Rotate motion</text>
+<rect x="86.0" y="232.0" width="100.0" height="78.0" rx="8" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5B1C9E" x="136.0" y="252.0" text-anchor="middle" font-weight="700" dominant-baseline="central">ASG cell</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="136.0" y="274.0" text-anchor="middle" dominant-baseline="central">r=grow, g=+2</text>
+<rect x="196.0" y="232.0" width="52.0" height="78.0" rx="4" fill="#F1F3F4" stroke="#5F6368" stroke-width="0.8"/>
+<circle cx="222.0" cy="271.0" r="16.0" fill="#E37400" stroke="#fff" stroke-width="0.9"/>
+<line x1="254.0" y1="271.0" x2="265.0" y2="271.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="274.0,271.0 265.0,275.1 265.0,266.9" fill="#5F6368"/>
+<rect x="282.0" y="232.0" width="112.0" height="78.0" rx="8" fill="#FEF7E0" stroke="#E37400" stroke-width="1.3"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#8A4B00" x="338.0" y="252.0" text-anchor="middle" font-weight="700" dominant-baseline="central">edit</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#3C4043" x="338.0" y="274.0" text-anchor="middle" dominant-baseline="central">v turns 90 deg</text>
+<line x1="400.0" y1="271.0" x2="411.0" y2="271.0" stroke="#5F6368" stroke-width="1.8"/>
+<polygon points="420.0,271.0 411.0,275.1 411.0,266.9" fill="#5F6368"/>
+<rect x="496.0" y="232.0" width="150.0" height="78.0" rx="4" fill="#fff" stroke="#5F6368" stroke-width="0.8"/>
+<path d="M 544 281.0 A 16 16 0 1 1 561 257.0" fill="none" stroke="#E37400" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="561.0,257.0 558.3,264.1 553.9,259.7" fill="#E37400"/>
+<circle cx="578.0" cy="271.0" r="11.0" fill="#FEF7E0" stroke="#E37400" stroke-width="0.9"/>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#8A4B00" x="571.0" y="301.0" text-anchor="middle" font-style="italic" dominant-baseline="central">reoriented</text>
+</svg>
