@@ -41,6 +41,39 @@ def _as_float_tensor(x: object, ref: torch.Tensor) -> torch.Tensor:
     return torch.as_tensor(x, device=ref.device, dtype=ref.dtype)
 
 
+# ---------------------------------------------------------------------------
+# Balanced reconstruction (HKO-7 B-MSE: up-weight heavy-rain pixels)
+# ---------------------------------------------------------------------------
+def balanced_weight_map(
+    target: torch.Tensor,
+    thresholds,
+    weights,
+    valid_mask: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
+    """Per-pixel weight map (HKO-7 balanced loss, Shi et al. 2017).
+
+    Heavy-precip pixels are scarce but matter most, so weight each pixel by the bin its
+    ``target`` value falls into: ``weights[0]`` below ``thresholds[0]``, then ``weights[i+1]``
+    at/above ``thresholds[i]`` (thresholds ascending, ``len(weights) == len(thresholds)+1``).
+    ``thresholds`` are in the SAME units as ``target`` (default config = VIL byte, aligned to
+    the CSI thresholds). ``valid_mask`` (truthy = valid) zeroes invalid/clutter pixels so they
+    are excluded from training, exactly as HKO-7 masks noise.
+    """
+    w = torch.full_like(target, float(weights[0]))
+    for t, wt in zip(thresholds, weights[1:]):
+        w = torch.where(target >= float(t), torch.as_tensor(float(wt), dtype=w.dtype, device=w.device), w)
+    if valid_mask is not None:
+        w = w * valid_mask.to(dtype=w.dtype, device=w.device)
+    return w
+
+
+def balanced_mse(pred: torch.Tensor, target: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+    """Weight-normalized MSE: sum(w*(pred-target)^2) / sum(w) (commensurate with plain MSE)."""
+    num = (weight * (pred - target) ** 2).sum()
+    den = weight.sum().clamp_min(1e-6)
+    return num / den
+
+
 def tier2_total_loss(
     pred_field: torch.Tensor,
     target_field: torch.Tensor,
@@ -49,6 +82,7 @@ def tier2_total_loss(
     flow: torch.Tensor,
     growth_budget: torch.Tensor,
     cfg,
+    valid_mask: Optional[torch.Tensor] = None,
 ) -> Dict[str, torch.Tensor]:
     """Full Tier-2 loss (training_method.md section 4).
 
@@ -59,7 +93,9 @@ def tier2_total_loss(
         asg_cont:      continuous ASG attributes subject to the soft IB penalty.
         flow:          [B,2,H,W] (vy,vx) motion field for the continuity residual.
         growth_budget: [B] target integrated content for the mass-budget term.
-        cfg:           Config; reads cfg.losses.lambda_*.
+        cfg:           Config; reads cfg.losses.lambda_* and (optional) cfg.losses.balanced_*.
+        valid_mask:    [B,1,H,W] truthy=valid; excludes clutter/no-coverage pixels from the
+                       reconstruction term (HKO-7 mask handling). None = all valid.
     Returns:
         dict with keys: total, render, ib, intervene, mass, nonneg, spectral, continuity.
     """
@@ -70,7 +106,18 @@ def tier2_total_loss(
     lam_spec = float(cfg.get_path("losses.lambda_spectral", 0.05))
     lam_cont = float(cfg.get_path("losses.lambda_continuity", 0.1))
 
-    render = torch.mean((pred_field - target_field) ** 2)
+    # Reconstruction term: optionally HKO-7 balanced (up-weight heavy-rain pixels) and/or
+    # validity-masked. Composes with (does not replace) the physics terms below.
+    if bool(cfg.get_path("losses.balanced_loss", False)):
+        thr = list(cfg.get_path("losses.balanced_thresholds", [16, 74, 133, 181]))
+        wts = list(cfg.get_path("losses.balanced_weights", [1, 2, 5, 10, 30]))
+        wmap = balanced_weight_map(target_field, thr, wts, valid_mask)
+        render = balanced_mse(pred_field, target_field, wmap)
+    elif valid_mask is not None:
+        vm = valid_mask.to(dtype=pred_field.dtype, device=pred_field.device)
+        render = (vm * (pred_field - target_field) ** 2).sum() / vm.sum().clamp_min(1e-6)
+    else:
+        render = torch.mean((pred_field - target_field) ** 2)
     ib = soft_ib_penalty(asg_cont, lam_ib)
     mass = physics.mass_budget_residual(pred_field, _as_float_tensor(growth_budget, pred_field))
     nonneg = physics.nonneg_penalty(pred_field)

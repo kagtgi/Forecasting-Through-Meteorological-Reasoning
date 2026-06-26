@@ -121,6 +121,10 @@ always-on L4 (full-scale auto-labeling, knowledge ablations, cross-region, gold-
 The whole pipeline also runs end-to-end on **CPU with synthetic data** (no download, no GPU) for
 wiring validation — see the smoke cell in runtime 1 and `tests/test_smoke_pipeline.py`.
 
+**VRAM / time / cost:** measured model sizes and grounded estimates are in **[COMPUTE.md](COMPUTE.md)**.
+Short version: the whole real pipeline fits a single **24 GB** GPU (Tier-2 with the documented knobs),
+**40 GB A100** recommended; a first time-boxed run is **~10–18 h ≈ 2 A100 sessions (~$30–60)**.
+
 ---
 
 ## Quick start

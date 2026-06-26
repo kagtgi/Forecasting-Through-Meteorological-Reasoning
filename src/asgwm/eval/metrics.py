@@ -42,47 +42,81 @@ def _np(x: ArrayLike) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # categorical contingency-table metrics (eval.md section 2)
 # ---------------------------------------------------------------------------
-def _contingency(pred: ArrayLike, obs: ArrayLike, thr: float):
-    """Hits / misses / false-alarms / correct-negatives at threshold ``thr``."""
+def _contingency(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None):
+    """Hits / misses / false-alarms / correct-negatives at threshold ``thr``.
+
+    ``mask`` (optional, same shape, truthy = valid) restricts the count to valid pixels so
+    radar clutter / no-coverage / below-threshold artifacts do not corrupt the score — needed
+    for clean cross-region (NEXRAD / MRMS / HKO-7) evaluation (eval.md; HKO-7 mask handling).
+    """
     p = _np(pred) >= thr
     o = _np(obs) >= thr
-    hits = float(np.sum(p & o))
-    misses = float(np.sum(~p & o))
-    false_alarms = float(np.sum(p & ~o))
-    correct_neg = float(np.sum(~p & ~o))
+    if mask is not None:
+        valid = _np(mask) > 0
+        p = p & valid
+        o = o & valid
+        hits = float(np.sum(p & o))
+        misses = float(np.sum(~p & o & valid))
+        false_alarms = float(np.sum(p & ~o & valid))
+        correct_neg = float(np.sum(~p & ~o & valid))
+    else:
+        hits = float(np.sum(p & o))
+        misses = float(np.sum(~p & o))
+        false_alarms = float(np.sum(p & ~o))
+        correct_neg = float(np.sum(~p & ~o))
     return hits, misses, false_alarms, correct_neg
 
 
-def csi(pred: ArrayLike, obs: ArrayLike, thr: float) -> float:
+def csi(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None) -> float:
     """Critical Success Index = H / (H + M + F)."""
-    h, m, f, _ = _contingency(pred, obs, thr)
+    h, m, f, _ = _contingency(pred, obs, thr, mask)
     denom = h + m + f
     return float(h / denom) if denom > 0 else 0.0
 
 
-def pod(pred: ArrayLike, obs: ArrayLike, thr: float) -> float:
+def pod(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None) -> float:
     """Probability Of Detection = H / (H + M)."""
-    h, m, _, _ = _contingency(pred, obs, thr)
+    h, m, _, _ = _contingency(pred, obs, thr, mask)
     denom = h + m
     return float(h / denom) if denom > 0 else 0.0
 
 
-def far(pred: ArrayLike, obs: ArrayLike, thr: float) -> float:
+def far(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None) -> float:
     """False Alarm Ratio = F / (H + F)."""
-    h, _, f, _ = _contingency(pred, obs, thr)
+    h, _, f, _ = _contingency(pred, obs, thr, mask)
     denom = h + f
     return float(f / denom) if denom > 0 else 0.0
 
 
-def hss(pred: ArrayLike, obs: ArrayLike, thr: float) -> float:
+def hss(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None) -> float:
     """Heidke Skill Score against random chance."""
-    h, m, f, c = _contingency(pred, obs, thr)
+    h, m, f, c = _contingency(pred, obs, thr, mask)
     n = h + m + f + c
     if n == 0:
         return 0.0
     expected = ((h + m) * (h + f) + (c + m) * (c + f)) / n
     denom = n - expected
     return float((h + c - expected) / denom) if denom != 0 else 0.0
+
+
+def sedi(pred: ArrayLike, obs: ArrayLike, thr: float, mask: ArrayLike = None) -> float:
+    """Symmetric Extremal Dependence Index (Ferro & Stephenson 2011).
+
+    SEDI = [ln F - ln H - ln(1-F) + ln(1-H)] / [ln F + ln H + ln(1-F) + ln(1-H)], with
+    H = hit rate (POD) and F = false-alarm rate (POFD = F/(F+C)). Unlike CSI/FAR it stays
+    informative as the event base-rate -> 0, so it is the better score at the high VIL
+    thresholds [160,181,219] where extreme cells are rare (eval.md 1A; YingLong used SEDI for
+    extreme-wind detection). Range -> 1 for a perfect forecast; 0 = no skill.
+    """
+    h, m, f, c = _contingency(pred, obs, thr, mask)
+    H = h / (h + m) if (h + m) > 0 else 0.0   # hit rate (POD)
+    F = f / (f + c) if (f + c) > 0 else 0.0   # false-alarm rate (POFD)
+    eps = 1e-6
+    H = min(max(H, eps), 1.0 - eps)
+    F = min(max(F, eps), 1.0 - eps)
+    num = np.log(F) - np.log(H) - np.log(1.0 - F) + np.log(1.0 - H)
+    den = np.log(F) + np.log(H) + np.log(1.0 - F) + np.log(1.0 - H)
+    return float(num / den) if den != 0 else 0.0
 
 
 # ---------------------------------------------------------------------------

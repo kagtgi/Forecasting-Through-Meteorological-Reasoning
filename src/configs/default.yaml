@@ -102,6 +102,13 @@ losses:                            # Tier-2 loss weights (training_method.md sec
   lambda_nonneg: 1.0
   lambda_spectral: 0.05
   lambda_continuity: 0.1
+  # HKO-7 balanced reconstruction (Shi et al. 2017): up-weight heavy-rain pixels in the
+  # Stage-C reconstruction term so skill at the high CSI thresholds is not washed out by the
+  # light-rain majority. Composes with (does not replace) the physics terms above.
+  # thresholds are in VIL byte units (aligned to eval.csi_thresholds_vil); set false to ablate.
+  balanced_loss: true
+  balanced_thresholds: [16, 74, 133, 181]   # 4 cut points -> 5 bins
+  balanced_weights: [1, 2, 5, 10, 30]       # weight per bin (len = thresholds + 1); mask -> 0
 
 train:
   precision: bf16
@@ -118,6 +125,8 @@ train:
     lr: 1.0e-4
     phases: [ph1_vqa, ph2_desc, ph3_asg, ph4_cot, ph5_eqcot]
     ph3_gate_f1: 0.70               # hard gate before Ph-4
+    replay_ratio: 0.1               # mix ~10% earlier-phase (Ph1-Ph3) samples into Ph4/Ph5 to
+                                    # prevent forgetting perception while learning CoT (Skew-T VLM)
     steps_per_phase: {ph1_vqa: 3000, ph2_desc: 3000, ph3_asg: 6000, ph4_cot: 6000, ph5_eqcot: 4000}
     max_steps_per_phase: null       # scalar cap for time-boxed FIRST_RUN (null = use steps_per_phase)
   tier2:
@@ -138,6 +147,7 @@ eval:
   # DiffCast/CasCast). Use THESE for the headline comparison table so CSI matches the
   # published baselines exactly (threshold in byte space, not kg/m^2 or remapped dBZ).
   csi_thresholds_vil: [16, 74, 133, 160, 181, 219]
+  sedi_thresholds_vil: [160, 181, 219]   # high thresholds for base-rate-robust SEDI (extreme cells)
   fss_scales: [4, 16]
   lead_times_min: [30, 60, 90, 120, 150, 180]
   regimes: [init, grow, decay, steady]
