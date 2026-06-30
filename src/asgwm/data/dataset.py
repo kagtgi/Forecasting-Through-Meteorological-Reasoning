@@ -26,6 +26,7 @@ import glob
 import json
 import math
 import os
+from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -71,10 +72,106 @@ def _load_asg_json(path: str) -> ASGSequence:
     )
 
 
-def list_asg_files(cfg: Config) -> List[str]:
-    """All cached ASG json files (sorted for determinism)."""
+def list_asg_files(cfg: Config, split: Optional[str] = None) -> List[str]:
+    """Cached ASG json files for ``split`` (sorted for determinism).
+
+    ``split`` defaults to ``cfg.data.split`` (``all`` keeps every event; ``train`` /
+    ``val`` / ``test`` apply the Earthformer-style temporal boundaries in
+    ``cfg.data.split_dates``). Synthetic events (``synth_*`` ids or missing timestamps)
+    are included in every split so the CPU smoke path keeps working.
+    """
     d = sevir_mod.asg_dir(cfg)
-    return sorted(glob.glob(os.path.join(d, "*.json")))
+    all_files = sorted(glob.glob(os.path.join(d, "*.json")))
+    split = split or str(cfg.get_path("data.split", "all")).lower()
+    if split in ("", "all", "none"):
+        return all_files
+    return [p for p in all_files if _asg_matches_split(p, cfg, split)]
+
+
+def _parse_event_time(time_iso: Optional[str]) -> Optional[datetime]:
+    if not time_iso:
+        return None
+    s = str(time_iso).strip()
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _split_boundaries(cfg: Config) -> Tuple[datetime, datetime]:
+    dates = cfg.get_path("data.split_dates", {}) or {}
+    train_end = _parse_event_time(str(dates.get("train_end", "2019-01-01T00:00:00Z")))
+    val_end = _parse_event_time(str(dates.get("val_end", "2019-06-01T00:00:00Z")))
+    if train_end is None or val_end is None:
+        raise ValueError("data.split_dates.train_end and val_end must be valid ISO timestamps")
+    return train_end, val_end
+
+
+def event_time_partition(cfg: Config, time_iso: Optional[str]) -> str:
+    """Return ``train`` / ``val`` / ``test`` for an ISO event timestamp."""
+    dt = _parse_event_time(time_iso)
+    if dt is None:
+        return "train"
+    train_end, val_end = _split_boundaries(cfg)
+    if dt < train_end:
+        return "train"
+    if dt < val_end:
+        return "val"
+    return "test"
+
+
+def _asg_matches_split(path: str, cfg: Config, split: str) -> bool:
+    split = split.lower()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:
+        return split == "train"
+    eid = str(d.get("event_id", os.path.splitext(os.path.basename(path))[0]))
+    if eid.startswith("synth_"):
+        return True
+    time_iso = d.get("asg_t", {}).get("meta", {}).get("time")
+    return event_time_partition(cfg, time_iso) == split
+
+
+def _motion_scale_from_asg(asg: ASG, cfg: Optional[Config] = None) -> float:
+    """km/h -> px/step scale using ASG meta (labeling) with cfg fallbacks."""
+    dx_km = float(asg.meta.get("dx_km", cfg.get_path("data.km_per_pixel", 1.0) if cfg else 1.0))
+    dt_min = float(asg.meta.get("dt_min", cfg.get_path("data.minutes_per_frame", 5.0) if cfg else 5.0))
+    return (dt_min / 60.0) / max(dx_km, 1e-6)
+
+
+def _flow_from_asg(asg: ASG, h: int, w: int, cfg: Optional[Config] = None) -> torch.Tensor:
+    """Build a dense [2, h, w] flow field (px/step) by splatting per-object motion.
+
+    Each object's (vy, vx) in km/h is converted to px/step before splatting onto the
+    low-res grid; the field is the intensity-weighted average. Used as the continuity /
+    smoothness reference in ``transition_loss``.
+    """
+    flow = np.zeros((2, h, w), dtype=np.float32)
+    weight = np.zeros((h, w), dtype=np.float32)
+    grid_h, grid_w = _grid_hw(asg, h, w)
+    sy = h / max(grid_h, 1)
+    sx = w / max(grid_w, 1)
+    mot_scale = _motion_scale_from_asg(asg, cfg)
+    ys, xs = np.mgrid[0:h, 0:w].astype(np.float32)
+    for o in asg.objects:
+        cy = float(o.cy) * sy
+        cx = float(o.cx) * sx
+        sigma = max(math.sqrt(max(o.area, 1.0)) / 2.0 * min(sy, sx), 2.0)
+        g = np.exp(-(((ys - cy) ** 2 + (xs - cx) ** 2) / (2.0 * sigma ** 2)))
+        flow[0] += (float(o.vy) * mot_scale * sy) * g
+        flow[1] += (float(o.vx) * mot_scale * sx) * g
+        weight += g
+    weight = np.maximum(weight, 1e-6)
+    flow[0] /= weight
+    flow[1] /= weight
+    return torch.from_numpy(flow)
 
 
 def _grid_hw(asg: ASG, default_h: int, default_w: int) -> Tuple[int, int]:
@@ -96,33 +193,6 @@ def _grid_hw(asg: ASG, default_h: int, default_w: int) -> Tuple[int, int]:
     grid_h = int(asg.meta.get("grid_h", grid_default_h))
     grid_w = int(asg.meta.get("grid_w", grid_default_w))
     return grid_h, grid_w
-
-
-def _flow_from_asg(asg: ASG, h: int, w: int) -> torch.Tensor:
-    """Build a dense [2, h, w] flow field (px/step) by splatting per-object motion.
-
-    Each object's quantized (vy, vx) is written into a Gaussian-weighted neighborhood
-    of its centroid (scaled to the low-res grid); the field is the intensity-weighted
-    average. Used as the continuity/smoothness reference in ``transition_loss``.
-    """
-    flow = np.zeros((2, h, w), dtype=np.float32)
-    weight = np.zeros((h, w), dtype=np.float32)
-    grid_h, grid_w = _grid_hw(asg, h, w)
-    sy = h / max(grid_h, 1)
-    sx = w / max(grid_w, 1)
-    ys, xs = np.mgrid[0:h, 0:w].astype(np.float32)
-    for o in asg.objects:
-        cy = float(o.cy) * sy
-        cx = float(o.cx) * sx
-        sigma = max(math.sqrt(max(o.area, 1.0)) / 2.0 * min(sy, sx), 2.0)
-        g = np.exp(-(((ys - cy) ** 2 + (xs - cx) ** 2) / (2.0 * sigma ** 2)))
-        flow[0] += (o.vy * sy) * g
-        flow[1] += (o.vx * sx) * g
-        weight += g
-    weight = np.maximum(weight, 1e-6)
-    flow[0] /= weight
-    flow[1] /= weight
-    return torch.from_numpy(flow)
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +217,7 @@ class ASGTransitionDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, object]:
         seq = _load_asg_json(self.files[idx])
         ctx = _context_vector(seq.asg_t, self.context_fields)
-        flow = _flow_from_asg(seq.asg_t, self.flow_size, self.flow_size)
+        flow = _flow_from_asg(seq.asg_t, self.flow_size, self.flow_size, self.cfg)
         return {
             "asg_t": seq.asg_t,
             "context": ctx,
@@ -161,10 +231,10 @@ class ASGTransitionDataset(Dataset):
 # Tier-0 / Tier-2: renderer dataset
 # ---------------------------------------------------------------------------
 class RendererDataset(Dataset):
-    """(ASG_{t+h}, advect_blind, target, growth_budget) for the Stage-C renderer.
+    """(ASG_t, ASG_{t+h}, advect_blind, target, growth_budget) for Stage-C.
 
-    Items: ``dict(asg_th: ASG, advect_blind: Tensor[1,H,W], target: Tensor[1,H,W],
-    growth_budget: Tensor[])`` on ``data.patch`` crops (interface contract).
+    Items: ``dict(asg_t, asg_th, context, advect_blind, target, growth_budget)`` on
+    ``data.patch`` crops (interface contract).
 
     Pairs each cached ASG with its source event: the target is the VIL frame at the
     transition horizon and ``advect_blind`` is the future-blind extrapolation from the
@@ -178,6 +248,7 @@ class RendererDataset(Dataset):
         self.patch = int(cfg.get_path("data.patch", 128))
         self.in_frames = int(cfg.get_path("data.in_frames", 13))
         self.minutes_per_frame = int(cfg.get_path("data.minutes_per_frame", 5))
+        self.context_fields = list(cfg.get_path("asg.context_fields", CONTEXT_FIELDS_DEFAULT))
         self.channels = ["vil"]
         self.seed = int(cfg.get_path("seed", 1234))
         # event lookup: event_id -> cached npz path
@@ -244,7 +315,9 @@ class RendererDataset(Dataset):
         growth_budget = target.clamp(min=0).sum()
 
         return {
+            "asg_t": seq.asg_t,
             "asg_th": seq.asg_th,
+            "context": _context_vector(seq.asg_t, self.context_fields),
             "advect_blind": advect,
             "target": target,
             "growth_budget": growth_budget,
@@ -453,7 +526,9 @@ def collate_transition(batch: List[Dict[str, object]]) -> Dict[str, object]:
 def collate_renderer(batch: List[Dict[str, object]]) -> Dict[str, object]:
     """Collate :class:`RendererDataset` items into batched field tensors."""
     return {
+        "asg_t": [b["asg_t"] for b in batch],
         "asg_th": [b["asg_th"] for b in batch],
+        "context": torch.stack([b["context"] for b in batch], dim=0),
         "advect_blind": torch.stack([b["advect_blind"] for b in batch], dim=0),  # [B,1,H,W]
         "target": torch.stack([b["target"] for b in batch], dim=0),              # [B,1,H,W]
         "growth_budget": torch.stack(

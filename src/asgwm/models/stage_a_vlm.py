@@ -707,30 +707,26 @@ class StageAVLM(nn.Module):
         proc = {k: (v.to(device) if hasattr(v, "to") else v) for k, v in proc.items()}
         gen_kw: Dict[str, Any] = dict(max_new_tokens=self.max_new_tokens, do_sample=False)
         if constrained and _HAS_LMFE:
-            lp = self._build_constrained_logits_processor()
-            if lp is not None:
-                gen_kw["logits_processor"] = lp
+            prefix_fn = self._build_constrained_logits_processor()
+            if prefix_fn is not None:
+                gen_kw["prefix_allowed_tokens_fn"] = prefix_fn
         out = self.model.generate(**proc, **gen_kw)
         text = self.processor.tokenizer.decode(out[0], skip_special_tokens=True)
         # Drop the echoed prompt if present.
         return text.split(prompt, 1)[-1] if prompt in text else text
 
     def _build_constrained_logits_processor(self):  # pragma: no cover
-        """lm-format-enforcer RegexParser -> HF logits processor over the ASG grammar."""
+        """lm-format-enforcer RegexParser -> HF prefix_allowed_tokens_fn over ASG grammar."""
         try:
             from lmformatenforcer import RegexParser  # type: ignore
             from lmformatenforcer.integrations.transformers import (  # type: ignore
                 build_transformers_prefix_allowed_tokens_fn,
             )
-            from transformers import LogitsProcessorList  # type: ignore
 
             parser = RegexParser(asg_completion_regex(self.n_max))
-            prefix_fn = build_transformers_prefix_allowed_tokens_fn(
+            return build_transformers_prefix_allowed_tokens_fn(
                 self.processor.tokenizer, parser
             )
-            # generate() consumes prefix_allowed_tokens_fn directly; stash it.
-            self._prefix_allowed_tokens_fn = prefix_fn
-            return None  # signal: use prefix_allowed_tokens_fn path instead
         except Exception:
             return None
 

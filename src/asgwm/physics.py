@@ -47,6 +47,21 @@ def semi_lagrangian_advect(field: torch.Tensor, flow: torch.Tensor, dt: float = 
     return F.grid_sample(field, grid, mode="bilinear", padding_mode="border", align_corners=True)
 
 
+def kmh_to_px_per_step(
+    motion_kmh: torch.Tensor,
+    km_per_pixel: float = 1.0,
+    minutes_per_frame: float = 5.0,
+) -> torch.Tensor:
+    """Convert StormObject (vy, vx) from km/h to pixels per frame step.
+
+    Matches the conversion used in ``labeling.pipeline._advect_objects`` and the Tier-0
+    gate advection baseline: one frame step advances ``(minutes_per_frame / 60) / km_per_pixel``
+    km per km/h of motion.
+    """
+    scale = (float(minutes_per_frame) / 60.0) / max(float(km_per_pixel), 1e-6)
+    return motion_kmh * scale
+
+
 def advect_points(centroids: torch.Tensor, motion: torch.Tensor, dt: float = 1.0) -> torch.Tensor:
     """Advance object centroids by their motion vectors.
 

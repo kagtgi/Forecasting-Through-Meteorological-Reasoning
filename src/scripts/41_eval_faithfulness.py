@@ -149,6 +149,51 @@ def _make_samples(cfg, n: int = 12):
     return samples, pred_asgs, gold_asgs
 
 
+def _real_samples(cfg, models, n: int = 24):
+    """Faithfulness samples from REAL events through the TRAINED model (no stub).
+
+    Per event: auto-label to get the inferred current state ``asg_t`` and the oracle future state
+    ``asg_th`` (auto-labelled future); take the real future field at the final horizon as the
+    target and the future-blind advection at that horizon as ``advect_blind``. C-iv uses
+    ``pred = transition.predict(asg_t)`` vs ``gold = oracle asg_th`` (a proxy for the hand-gold
+    subset when none is configured). Returns ``([], [], [])`` if no events label successfully.
+    """
+    import torch
+    from asgwm.eval import forecast as FC
+    from asgwm.labeling import pipeline as P
+    from asgwm.data.advection import advect_blind
+
+    in_frames = int(cfg.get_path("data.in_frames", 13))
+    out_frames = int(cfg.get_path("data.out_frames", 36))
+    eval_grid = int(cfg.get_path("eval.eval_grid", cfg.get_path("data.grid", 384)))
+    kmpp = float(cfg.get_path("data.km_per_pixel", 1.0))
+    transition = models.get("transition")
+    samples, pred_asgs, gold_asgs = [], [], []
+    for eid, vil, ev in FC._events(cfg, n):
+        vil = FC._cap(vil, eval_grid)
+        hist = vil[:in_frames]
+        fut = vil[in_frames:in_frames + out_frames]
+        if hist.shape[0] < 2 or fut.shape[0] < 1:
+            continue
+        try:
+            seq = P.autolabel_event(ev, cfg)
+        except Exception:
+            continue
+        h = fut.shape[0] - 1  # render/score at the final available horizon
+        ab = np.asarray(advect_blind(hist, h + 1), dtype=np.float32)[h]  # [H,W]
+        target = fut[h]
+        H, W = target.shape
+        samples.append({
+            "asg_th": seq.asg_th, "asg_t": seq.asg_t,
+            "advect_blind": torch.as_tensor(ab[None], dtype=torch.float32),
+            "target": torch.as_tensor(target[None], dtype=torch.float32),
+            "context": dict(seq.asg_t.context), "H": H, "W": W, "km_per_pixel": kmpp,
+        })
+        gold_asgs.append(seq.asg_th)
+        pred_asgs.append(transition.predict(seq.asg_t, None) if transition is not None else seq.asg_th)
+    return samples, pred_asgs, gold_asgs
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="ASG-WM faithfulness suite (eval.md C) + capacity audit")
     ap.add_argument("--config", default=os.path.join(os.path.dirname(__file__), "..", "configs", "default.yaml"))
@@ -157,14 +202,30 @@ def main() -> None:
 
     cfg = load_config(args.config, args.override)
 
-    samples, pred_asgs, gold_asgs = _make_samples(cfg)
+    # Prefer the REAL trained renderer + transition on REAL events; fall back to the
+    # contract-honouring stub + synthetic samples only when no Tier-2 checkpoint exists, so the
+    # suite still runs pre-training (numbers are then illustrative, not the model's).
+    from asgwm.eval import forecast as FC
+    models = FC._load_asgwm(cfg)
+    transition = None
+    samples = []
+    if models is not None:
+        samples, pred_asgs, gold_asgs = _real_samples(cfg, models, int(cfg.get_path("eval.n_faith_events", 24)))
+        if samples:
+            renderer = models["renderer"]
+            transition = models.get("transition")
+            source = "REAL (trained renderer + SEVIR events)"
+    if not samples:
+        samples, pred_asgs, gold_asgs = _make_samples(cfg)
+        renderer = _StubRenderer(samples[0]["H"], samples[0]["H"])
+        source = "STUB (no Tier-2 checkpoint; synthetic samples -- illustrative)"
     H = samples[0]["H"]
-    renderer = _StubRenderer(H, H)
+    print(f"[41_eval_faithfulness] renderer source: {source}; n_samples={len(samples)}")
 
     # C-i intervention consistency
     cii_inter = FA.intervention_consistency(renderer, samples, cfg)
-    # C-ii bottleneck ablation
-    cii_abl = FA.bottleneck_ablation(renderer, None, samples, cfg)
+    # C-ii bottleneck ablation (transition supplies the real inferred ASG when trained)
+    cii_abl = FA.bottleneck_ablation(renderer, transition, samples, cfg)
     # C-iii leakage audit (CLUB)
     futures = torch.stack([s["target"] for s in samples])
     advs = torch.stack([s["advect_blind"] for s in samples])

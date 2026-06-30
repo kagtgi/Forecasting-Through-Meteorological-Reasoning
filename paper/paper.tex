@@ -44,14 +44,14 @@
   atmospheric physics}
 
 \begin{abstract}
-Short-range precipitation nowcasting fails most severely during convective initiation and rapid growth---precisely the regimes where a brief radar history under-constrains the future and physical reasoning is most decisive, and whose frequency is rising under climate change.
-Existing deep-learning nowcasters encode meteorological knowledge as opaque latent vectors that a forecaster cannot inspect or intervene on, and physics-informed variants inject only governing equations, leaving seasonal, geographic, diurnal, and synoptic knowledge unrepresented.
-We introduce the Atmospheric Scene Graph World Model (ASG-WM), in which a vision-language model reads a multi-channel radar--satellite sequence and constructs an explicit, human-readable world-model state---the Atmospheric Scene Graph (ASG)---encoding storm-object positions, motion vectors, growth and decay tendencies, regime classifications, and per-attribute uncertainty, requiring no human-supplied text at inference.
-A physics-informed renderer then materialises the forecast field exclusively from this predicted state and a future-blind advection of the current frame, creating an architectural information bottleneck in which the structured state---not a decorative rationale---is the sole causal conduit to the forecast.
-Faithfulness is therefore testable by intervention: by construction, zeroing the scene graph collapses the forecast to advection, and structured perturbations propagate to the rendered field as the state predicts.
-Evaluated on the SEVIR benchmark against twelve baselines spanning extrapolation, recurrent, convolutional, transformer, and generative families, ASG-WM is designed to achieve competitive overall skill while improving on convective initiation and rapid growth by \emph{[TBR]} CSI at the heavy-precipitation threshold over the strongest generative competitor, at a modest, explicitly reported cost on steady-advection events.
-A systematic ablation isolates five meteorological knowledge categories---governing equations, seasonal priors, geographic context, diurnal forcing, and synoptic patterns---each tested with a targeted held-out benchmark.
-We release the automatic ASG labelling pipeline, which requires no GPU and no manual annotation at training scale.
+Short-range precipitation nowcasting fails most severely during convective initiation and rapid growth---the regimes in which a brief radar history admits many physically distinct futures, in which a skilful warning matters most, and whose frequency is rising under climate change.
+State-of-the-art deep-learning nowcasters resolve this ambiguity inside opaque latent representations that a forecaster can neither read nor correct, and physics-informed variants inject only governing equations, leaving the seasonal, geographic, diurnal, and synoptic knowledge that human forecasters depend on unrepresented.
+Here we introduce the Atmospheric Scene Graph World Model (ASG-WM), which forecasts \emph{through} an explicit, human-readable world state rather than around a hidden one.
+A vision--language model reads a multi-channel radar--satellite sequence and, with no human-supplied text at inference, constructs the Atmospheric Scene Graph---a constrained-grammar state of storm objects carrying positions, motion vectors, growth--decay tendencies, regime labels, and per-attribute uncertainty.
+A physics-informed renderer then materialises the forecast field from this predicted state and a future-blind advection of the present, and from nothing else.
+This architectural information bottleneck makes the structured state the sole causal path to the forecast, so faithfulness is not asserted but entailed: zeroing the scene graph provably collapses the forecast to advection, and editing a storm object changes the forecast exactly as the state dictates.
+We formalise this notion of architectural faithfulness, specify a test suite that probes causality directly rather than through post-hoc saliency, and design a regime-stratified evaluation against twelve baselines on the SEVIR benchmark alongside a five-category ablation of meteorological knowledge---governing equations, seasonal, geographic, diurnal, and synoptic priors---each with a matched held-out test.
+ASG-WM reframes interpretability in physical forecasting from a property one hopes to observe into one the architecture guarantees, offering a template for faithful, intervenable world models wherever prediction is governed by partial physical knowledge.
 \end{abstract}
 
 \begin{document}
@@ -131,6 +131,7 @@ The principal contributions of this work are:
 \end{itemize}
 
 \noindent To our knowledge, ASG-WM is the first nowcasting system in which an explicit, human-readable atmospheric state is, by construction, the only path from observation to forecast.
+Its significance reaches beyond precipitation. Nowcasting is the rare physical-forecasting setting in which an explicit state, a governing-equation transition, and an exact renderer can all be written down and checked---making it an ideal proving ground for a broader question: whether a language model can construct and roll forward a world model that is \emph{verifiable} rather than merely predictive. The faithful bottleneck we develop here is the mechanism that turns that question into an experiment.
 The remainder of the paper reviews related work and the world-model framing, formalises faithfulness, and then specifies the architecture, evaluation protocol, and experiments designed to substantiate these claims.
 
 % ===================================================================
@@ -235,25 +236,25 @@ On steady-advection frames---the majority class---ASG-WM's performance is bounde
 \caption{\textbf{Overall forecasting skill on the SEVIR test set.}
 Headline comparison against the most relevant baselines, one per family, retrained under a unified protocol on SEVIR: extrapolation (pysteps), CNN (RainNet), physics-informed generative (NowcastNet), language-guided (LangPrecip), and our prior physics-informed framework (ThoR).
 The full twelve-baseline suite (recurrent, transformer, and additional generative families) is reported in the Supplementary Information.
-CSI and HSS at three thresholds, FSS at two neighbourhood scales, pooled CSI over 0--3\,h, mean CRPS, and LPIPS.
+CSI and HSS at three thresholds, FSS at two neighbourhood scales, pooled CSI over 0--3\,h, SEDI at the heavy threshold (base-rate-robust for rare extremes), mean CRPS, and LPIPS.
 Higher is better for CSI/HSS/FSS/pooled CSI; lower for CRPS/LPIPS.
 \emph{[Results: TBR.]} Bold = best; underline = second best.}
 \label{tab:skill}
 \small
 \setlength{\tabcolsep}{3.6pt}
-\begin{tabular}{@{}llccccccccc@{}}
+\begin{tabular}{@{}llcccccccccc@{}}
 \toprule
- & & \multicolumn{3}{c}{CSI ($\uparrow$)} & \multicolumn{3}{c}{HSS ($\uparrow$)} & FSS & Pooled & CRPS \\
+ & & \multicolumn{3}{c}{CSI ($\uparrow$)} & \multicolumn{3}{c}{HSS ($\uparrow$)} & FSS & Pooled & SEDI & CRPS \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-8}
-Method & Family & L & M & H & L & M & H & 16${\times}$16 ($\uparrow$) & CSI ($\uparrow$) & ($\downarrow$) \\
+Method & Family & L & M & H & L & M & H & 16${\times}$16 ($\uparrow$) & CSI ($\uparrow$) & H\,($\uparrow$) & ($\downarrow$) \\
 \midrule
-pysteps / S-PROG~\cite{pulkkinen2019pysteps} & Extrapolation & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-RainNet~\cite{ayzel2020rainnet} & CNN / U-Net & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-NowcastNet~\cite{zhang2023nowcastnet} & Physics-generative & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-LangPrecip~\cite{ling2025langprecip} & Language-guided & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
-ThoR~\cite{ta2025thor} & Physics-informed (ours) & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+pysteps / S-PROG~\cite{pulkkinen2019pysteps} & Extrapolation & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+RainNet~\cite{ayzel2020rainnet} & CNN / U-Net & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+NowcastNet~\cite{zhang2023nowcastnet} & Physics-generative & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+LangPrecip~\cite{ling2025langprecip} & Language-guided & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ThoR~\cite{ta2025thor} & Physics-informed (ours) & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
 \midrule
-\textbf{ASG-WM (ours)} & Reasoning WM & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
+\textbf{ASG-WM (ours)} & Reasoning WM & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} & \textbf{--} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -469,18 +470,18 @@ The few-step rectified-flow renderer (1--4 steps) is designed to keep per-member
 
 \begin{table}[ht]
 \centering
-\caption{\textbf{Computational footprint} (TBR).
-Inference latency per event, peak inference memory, ensemble cost ($K{=}10$), and training cost relative to leading generative baselines.}
+\caption{\textbf{Computational footprint.}
+Trainable parameter count (ASG-WM = the transition transformer + rectified-flow renderer; the Stage-A perception backbone is a separately-reported 2.2\,B-parameter VLM adapted with 4-bit QLoRA, so only low-rank adapters train), inference latency per event, peak inference memory, ensemble cost ($K{=}10$), and training cost relative to leading generative baselines. Latency, memory, and training cost are TBR until measured on the target accelerator.}
 \label{tab:compute}
 \small
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-Method & Infer.\ latency (ms) $\downarrow$ & Peak mem.\ (GB) $\downarrow$ & Ensemble ($K{=}10$) (s) $\downarrow$ & Train (GPU-h) $\downarrow$ \\
+Method & Params (M) & Infer.\ latency (ms) $\downarrow$ & Peak mem.\ (GB) $\downarrow$ & Ensemble ($K{=}10$) (s) $\downarrow$ & Train (GPU-h) $\downarrow$ \\
 \midrule
-DGMR~\cite{ravuri2021dgmr} & -- & -- & -- & -- \\
-NowcastNet~\cite{zhang2023nowcastnet} & -- & -- & -- & -- \\
-LDCast~\cite{leinonen2023ldcast} & -- & -- & -- & -- \\
-\textbf{ASG-WM (ours)} & -- & -- & -- & -- \\
+DGMR~\cite{ravuri2021dgmr} & -- & -- & -- & -- & -- \\
+NowcastNet~\cite{zhang2023nowcastnet} & -- & -- & -- & -- & -- \\
+LDCast~\cite{leinonen2023ldcast} & -- & -- & -- & -- & -- \\
+\textbf{ASG-WM (ours)} & \textbf{34.7} & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}
 \end{table}

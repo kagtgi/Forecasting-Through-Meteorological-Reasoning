@@ -224,7 +224,7 @@ def bottleneck_ablation(renderer, transition, samples: Sequence[dict], cfg) -> D
         ``{"oracle","inferred","zeroed","shuffled","advection"}`` mean CSI (heavy threshold).
     """
     from asgwm.eval import metrics as MET
-    thr = float(cfg.get_path("eval.thresholds_dbz", [16, 35, 45])[-1])
+    thr = float(cfg.get_path("eval.csi_thresholds_vil", cfg.get_path("eval.thresholds_dbz", [16, 35, 45]))[-1])
     flow_steps = int(cfg.get_path("stage_c.flow_steps", 4))
 
     n = len(samples)

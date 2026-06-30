@@ -47,9 +47,9 @@ def main() -> None:
     with open(os.path.join(tables_dir, "skill.tex"), "w", encoding="utf-8") as f:
         f.write(harness.skill_table_tex(results))
 
-    # computational footprint: TBR placeholder rows now (measure ASG-WM after Tier-2;
-    # baseline rows fill when each baseline is implemented).
-    compute = {name: {} for name in [harness.ASGWM] + list(B.HEADLINE)}
+    # computational footprint: real param counts now; ASG-WM latency/mem timed when a Tier-2
+    # checkpoint is loadable; baseline rows fill when each baseline is implemented.
+    compute = harness.measure_compute(cfg)
     viz.save_results_json(compute, os.path.join(results_dir, "compute_results.json"))
     with open(os.path.join(tables_dir, "compute.tex"), "w", encoding="utf-8") as f:
         f.write(harness.compute_table_tex(compute))

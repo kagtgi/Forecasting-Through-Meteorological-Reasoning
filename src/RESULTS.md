@@ -83,6 +83,21 @@ python scripts/42_make_figures.py --gallery --override paths.root=$ROOT
 Everything also runs end-to-end on **synthetic data, CPU, no checkpoints** (advection fallback) for
 wiring validation: same commands with `--override data.dataset=synthetic`.
 
+## Run-time behaviours (finalized for the A100 run)
+
+- **Canonical thresholds.** Skill metrics, the skill table, regime/lead-time figures, and the
+  C-ii ablation all use `eval.csi_thresholds_vil` `[16,74,133,160,181,219]` (VIL byte), matching
+  the published SEVIR-VIL baselines. **SEDI** at `eval.sedi_thresholds_vil` `[160,181,219]` is
+  reported alongside (base-rate-robust at the extreme thresholds).
+- **Full-resolution eval.** `eval.eval_grid` defaults to `data.grid` (384) so CSI is computed at
+  full resolution; set it to 96 for a fast CPU/synthetic smoke.
+- **Faithfulness on the real model.** `41_eval_faithfulness.py` loads the trained Stage-B/C and
+  runs the C-i/C-ii/C-iv suite on **real SEVIR events** when a Tier-2 checkpoint exists (it prints
+  `source: REAL ...`); with no checkpoint it falls back to the contract-honouring stub on
+  synthetic samples (`source: STUB ... illustrative`). Only the REAL output is paper-grade.
+- **Compute footprint.** `harness.measure_compute` reports real Stage-B+C parameter counts now
+  (ASG-WM = 34.7\,M) and times ASG-WM latency/peak-mem when a checkpoint is loadable.
+
 ## What is real now vs after training
 
 - **Real now:** the full pipeline, schema, baseline registry, table/figure emitters, pysteps row.

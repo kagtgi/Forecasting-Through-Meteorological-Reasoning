@@ -183,8 +183,11 @@ def _load_phase_ckpt(model, path: str) -> None:
 # Ph-3 gate: ASG F1 on the gold subset
 # ---------------------------------------------------------------------------
 def _load_gold_asgs(cfg) -> List[ASG]:
-    """Load the hand-labeled gold ASG subset; fall back to a synthetic gold set so the
-    gate is computable in the CPU smoke test (datasource.md gold subset)."""
+    """Load the hand-labeled gold ASG subset (datasource.md gold subset).
+
+    Returns an empty list when ``paths.gold_subset`` is missing or empty — callers must
+    not substitute training labels (that would leak the Ph-3 curriculum into the gate).
+    """
     gold_dir = cfg.get_path("paths.gold_subset", "./artifacts/gold")
     asgs: List[ASG] = []
     if gold_dir and os.path.isdir(gold_dir):
@@ -198,21 +201,6 @@ def _load_gold_asgs(cfg) -> List[ASG]:
                 asgs.append(ASG.from_dict(d))
             except Exception:
                 continue
-    if asgs:
-        return asgs
-    # Synthetic gold fallback from the dataset's oracle ASG_t.
-    try:
-        VLMCurriculumDataset = _import_curriculum_dataset()
-        ds = VLMCurriculumDataset(cfg, phase="ph3_asg")
-        for i in range(min(len(ds), 16)):
-            item = ds[i]
-            tgt = item.get("target", "")
-            try:
-                asgs.append(parse(tgt))
-            except Exception:
-                pass
-    except Exception:
-        pass
     return asgs
 
 
@@ -295,7 +283,14 @@ def run_curriculum(cfg) -> str:
                 f"(threshold {gate_f1:.2f}, n_gold={stats.get('n_gold', 0)}, "
                 f"regime_acc={stats.get('regime_acc', 0.0):.3f})"
             )
-            if f1 < gate_f1:
+            if stats.get("n_gold", 0) == 0:
+                msg = (
+                    "Tier-1 Ph-3 gate SKIPPED: no hand-labeled gold ASG subset found at "
+                    f"{cfg.get_path('paths.gold_subset', './artifacts/gold')}. "
+                    "Populate the gold set before trusting the gate on real data."
+                )
+                print("[tier1] WARNING: " + msg)
+            elif f1 < gate_f1:
                 msg = (
                     f"Tier-1 Ph-3 gate FAILED: ASG F1 {f1:.4f} < {gate_f1:.2f} on the gold "
                     f"subset. The downstream CoT is unfounded without a reliable state — "
@@ -304,7 +299,8 @@ def run_curriculum(cfg) -> str:
                 )
                 print("[tier1] " + msg)
                 raise RuntimeError(msg)
-            print("[tier1] Ph-3 gate PASSED; continuing to Ph-4.")
+            else:
+                print("[tier1] Ph-3 gate PASSED; continuing to Ph-4.")
 
         ckpt_in = ckpt_out
 

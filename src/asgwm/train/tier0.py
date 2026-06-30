@@ -135,8 +135,13 @@ def _build_transition_tensors(batch, model, encode_asg, device):
     cent_th = stk(enc_th, "centroids")
     b, n = cent_t.shape[:2]
     if bool(getattr(model, "predict_residual", True)):
+        motion_px = physics.kmh_to_px_per_step(
+            motion_t.reshape(-1, 2),
+            float(getattr(model, "km_per_pixel", 1.0)),
+            float(getattr(model, "minutes_per_frame", 5.0)),
+        )
         advected = physics.advect_points(
-            cent_t.reshape(-1, 2), motion_t.reshape(-1, 2), dt=float(getattr(model, "dt", 1.0))
+            cent_t.reshape(-1, 2), motion_px, dt=float(getattr(model, "dt", 1.0))
         ).reshape(b, n, 2)
         target_centroid = cent_th - advected
     else:
@@ -412,10 +417,11 @@ def gate_check(cfg) -> Dict[str, object]:
                 mot = torch.tensor(
                     [[o.vy, o.vx] for o in asg_t.objects], dtype=torch.float32
                 )
-                # motion is km/h; convert to px/step via km_per_pixel & minutes_per_frame.
-                kmpp = float(cfg.get_path("data.km_per_pixel", 1.0))
-                mpf = float(cfg.get_path("data.minutes_per_frame", 5))
-                mot_px = mot * (mpf / 60.0) / max(kmpp, 1e-6)
+                mot_px = physics.kmh_to_px_per_step(
+                    mot,
+                    float(cfg.get_path("data.km_per_pixel", 1.0)),
+                    float(cfg.get_path("data.minutes_per_frame", 5)),
+                )
                 new_cent = physics.advect_points(cent, mot_px, dt=dt_steps).numpy()
                 from asgwm.asg import StormObject
                 for j, o in enumerate(asg_t.objects):

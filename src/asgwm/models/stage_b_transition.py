@@ -192,6 +192,8 @@ class TransitionTransformer(nn.Module):
         growth_field_size: int = 48,
         predict_residual: bool = True,
         dt: float = 1.0,
+        km_per_pixel: float = 1.0,
+        minutes_per_frame: float = 5.0,
         lambda_continuity: float = 0.1,
         lambda_smooth: float = 0.01,
     ) -> None:
@@ -201,6 +203,8 @@ class TransitionTransformer(nn.Module):
         self.growth_field_size = growth_field_size
         self.predict_residual = predict_residual
         self.dt = dt
+        self.km_per_pixel = km_per_pixel
+        self.minutes_per_frame = minutes_per_frame
         self.lambda_continuity = lambda_continuity
         self.lambda_smooth = lambda_smooth
         self.n_regimes = len(REGIMES)
@@ -269,6 +273,9 @@ class TransitionTransformer(nn.Module):
             predict_residual=bool(_g("predict_residual", True)),
             dt=float(cfg.get_path("data.horizon_min", 60.0) / max(cfg.get_path("data.minutes_per_frame", 5.0), 1.0))
             if hasattr(cfg, "get_path") else 1.0,
+            km_per_pixel=float(cfg.get_path("data.km_per_pixel", 1.0)) if hasattr(cfg, "get_path") else 1.0,
+            minutes_per_frame=float(cfg.get_path("data.minutes_per_frame", 5.0))
+            if hasattr(cfg, "get_path") else 5.0,
             lambda_continuity=float(_g("lambda_continuity", 0.1)),
             lambda_smooth=float(_g("lambda_smooth", 0.01)),
         )
@@ -362,7 +369,10 @@ class TransitionTransformer(nn.Module):
         d_centroid = out["d_centroid"][0]          # [N,2]
 
         if self.predict_residual:
-            advected = physics.advect_points(centroids, motion, dt=self.dt)  # [N,2]
+            motion_px = physics.kmh_to_px_per_step(
+                motion, self.km_per_pixel, self.minutes_per_frame
+            )
+            advected = physics.advect_points(centroids, motion_px, dt=self.dt)  # [N,2]
             new_centroid = advected + d_centroid
         else:
             new_centroid = centroids + d_centroid

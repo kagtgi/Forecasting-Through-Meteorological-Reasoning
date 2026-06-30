@@ -216,7 +216,7 @@ def train_tier2(
             else:
                 # Stage-B prediction from the oracle ASG_t available in the batch (or the
                 # target ASG as a stand-in if asg_t is absent). VLM stays stop-grad.
-                base = batch.get("asg_t", oracle_asgs)[i] if "asg_t" in batch else oracle_asgs[i]
+                base = batch["asg_t"][i]
                 ctx_vec = batch.get("context")
                 ctx_i = ctx_vec[i].to(device) if ctx_vec is not None else None
                 try:

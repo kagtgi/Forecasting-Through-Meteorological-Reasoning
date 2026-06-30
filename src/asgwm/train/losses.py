@@ -135,7 +135,7 @@ def tier2_total_loss(
 
     total = (
         render
-        + lam_ib * ib
+        + ib
         + lam_int * intervene
         + lam_mass * mass
         + lam_nonneg * nonneg

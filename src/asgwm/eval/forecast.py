@@ -26,7 +26,12 @@ from asgwm import baselines as B
 # helpers
 # ---------------------------------------------------------------------------
 def _cap(vil: np.ndarray, cap: int = 96) -> np.ndarray:
-    """Stride-downsample [T,H,W] to <= cap on the spatial dims (keep CPU eval cheap)."""
+    """Stride-downsample [T,H,W] to <= cap on the spatial dims.
+
+    Default cap keeps CPU/synthetic smoke cheap; the real (A100) skill run sets
+    ``eval.eval_grid`` to the full canonical grid (384) so CSI matches the published
+    SEVIR-VIL baselines rather than a downsampled proxy.
+    """
     if vil.ndim != 3:
         vil = np.asarray(vil)
     _, h, w = vil.shape
@@ -65,7 +70,11 @@ def _load_asgwm(cfg) -> Optional[Dict]:
         import torch  # noqa: F401
         from asgwm.train import checkpoint as ckpt
         cdir = cfg.get_path("paths.checkpoints", "./artifacts/ckpt")
-        tr_ck = ckpt.latest(os.path.join(cdir, "tier2_endtoend")) or ckpt.latest(os.path.join(cdir, "tier0_renderer"))
+        tr_ck = (
+            ckpt.latest(os.path.join(cdir, "tier2"))
+            or ckpt.latest(os.path.join(cdir, "tier2_endtoend"))
+            or ckpt.latest(os.path.join(cdir, "tier0_renderer"))
+        )
         b_ck = ckpt.latest(os.path.join(cdir, "tier0_transition"))
         if not (tr_ck or b_ck):
             return None  # nothing trained yet
@@ -151,9 +160,13 @@ def assemble(method: str, cfg, n_events: int = 24, K: Optional[int] = None) -> L
     models = _load_asgwm(cfg) if is_asgwm else None
     from asgwm.labeling import pipeline as P
 
+    # Evaluate at the full canonical grid for paper numbers; override eval.eval_grid (e.g. 96)
+    # to keep synthetic/CPU smoke fast.
+    eval_grid = int(cfg.get_path("eval.eval_grid", cfg.get_path("data.grid", 384)))
+
     samples: List[Dict] = []
     for eid, vil, ev in _events(cfg, n_events):
-        vil = _cap(vil)
+        vil = _cap(vil, eval_grid)
         hist, fut = _split(vil, in_frames, out_frames)
         if hist.shape[0] < 2 or fut.shape[0] < 1:
             continue

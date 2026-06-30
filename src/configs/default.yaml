@@ -35,6 +35,12 @@ data:
   n_train_events: 2500
   patch: 128                        # renderer training patch size
   vil_clip: [0.0, 255.0]            # canonical channel = SEVIR VIL byte [0,255]; model in = /255
+  # Temporal split (Earthformer/PreDiff): train < train_end, val < val_end, test >= val_end.
+  # Use split=all for smoke tests / synthetic; set split=train for real SEVIR training.
+  split: all                         # train | val | test | all
+  split_dates:
+    train_end: "2019-01-01T00:00:00Z"
+    val_end: "2019-06-01T00:00:00Z"
   # SEVIR temporal split (Earthformer/PreDiff): train < 2019-01-01, val 2019-01..05,
   # test >= 2019-06-01. NEXRAD/MRMS are used entirely as OOD test (not split).
   nexrad:                           # OOD set: NEXRAD Level II (s3://unidata-nexrad-level2)
