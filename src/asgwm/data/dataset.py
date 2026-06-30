@@ -29,9 +29,35 @@ import os
 from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
+import sys
+
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
+
+
+def make_loader(dataset, batch_size: int, collate_fn, cfg=None, shuffle: bool = True) -> DataLoader:
+    """Build a DataLoader with config-driven workers that overlap CPU prep with GPU compute.
+
+    Reads ``train.num_workers`` (default 4). Workers fork cleanly on Linux/A100 and parallelise
+    the on-the-fly auto-labelling in :class:`RendererDataset`/:class:`ASGTransitionDataset`; they
+    are clamped to 0 on Windows (spawn-based workers are slow/fragile for the small local smoke,
+    and the project's tests run on Windows). ``pin_memory`` + ``persistent_workers`` are enabled
+    only when workers are active.
+    """
+    nw = 4
+    if cfg is not None:
+        try:
+            nw = int(cfg.get_path("train.num_workers", 4))
+        except Exception:
+            nw = 4
+    if sys.platform.startswith("win"):
+        nw = 0
+    kw = dict(batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+    if nw > 0:
+        kw.update(num_workers=nw, pin_memory=torch.cuda.is_available(),
+                  persistent_workers=True, prefetch_factor=2)
+    return DataLoader(dataset, **kw)
 
 from ..asg import (
     ASG,

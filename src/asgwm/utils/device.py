@@ -11,6 +11,29 @@ import contextlib
 import torch
 
 
+_PERF_ENABLED = False
+
+
+def enable_perf() -> None:
+    """Enable TF32 matmuls + cuDNN autotuning on CUDA (accuracy-neutral A100 speedups).
+
+    TF32 uses the A100 tensor cores for fp32 matmuls/convs at ~no accuracy cost for training,
+    and ``cudnn.benchmark`` autotunes conv algorithms for our fixed patch shapes. Idempotent and
+    a no-op off CUDA. Called automatically by :func:`resolve_device` when a CUDA device is chosen.
+    """
+    global _PERF_ENABLED
+    if _PERF_ENABLED or not torch.cuda.is_available():
+        return
+    try:
+        torch.set_float32_matmul_precision("high")
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+        torch.backends.cudnn.benchmark = True
+    except Exception:  # pragma: no cover - defensive on exotic builds
+        pass
+    _PERF_ENABLED = True
+
+
 def resolve_device(cfg=None) -> torch.device:
     pref = "auto"
     if cfg is not None:
@@ -19,10 +42,14 @@ def resolve_device(cfg=None) -> torch.device:
         except Exception:
             pref = "auto"
     if pref in ("", "auto", "none", "null"):
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if pref.startswith("cuda") and not torch.cuda.is_available():
-        return torch.device("cpu")
-    return torch.device(pref)
+        dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    elif pref.startswith("cuda") and not torch.cuda.is_available():
+        dev = torch.device("cpu")
+    else:
+        dev = torch.device(pref)
+    if dev.type == "cuda":
+        enable_perf()
+    return dev
 
 
 def amp_dtype(cfg=None):

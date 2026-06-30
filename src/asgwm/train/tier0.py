@@ -21,8 +21,8 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 
+from asgwm.data.dataset import make_loader
 from asgwm.asg import ASG, REGIME_TO_IDX
 from asgwm import physics
 from . import checkpoint as ckpt
@@ -195,7 +195,7 @@ def train_transition(cfg, resume: Optional[str] = None) -> str:
     ds = ASGTransitionDataset(cfg)
     bs = int(cfg.get_path("train.tier0.batch_size", 32))
     bs = max(1, min(bs, len(ds)))
-    loader = DataLoader(ds, batch_size=bs, shuffle=True, collate_fn=collate_transition)
+    loader = make_loader(ds, bs, collate_transition, cfg)
 
     model = TransitionTransformer.from_config(cfg).to(device)
     lr = float(cfg.get_path("train.tier0.lr", 3e-4))
@@ -272,7 +272,7 @@ def train_deterministic_renderer(cfg, resume: Optional[str] = None) -> str:
     ds = RendererDataset(cfg)
     bs = int(cfg.get_path("train.tier0.batch_size", 32))
     bs = max(1, min(bs, len(ds)))
-    loader = DataLoader(ds, batch_size=bs, shuffle=True, collate_fn=collate_renderer)
+    loader = make_loader(ds, bs, collate_renderer, cfg)
 
     model = LatentRectifiedFlowRenderer.from_config(cfg).to(device)
     lr = float(cfg.get_path("train.tier0.lr", 3e-4))

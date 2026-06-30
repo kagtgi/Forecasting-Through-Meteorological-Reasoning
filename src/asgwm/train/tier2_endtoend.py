@@ -20,8 +20,8 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 
+from asgwm.data.dataset import make_loader
 from asgwm.asg import ASG
 from . import checkpoint as ckpt
 from .losses import tier2_total_loss, intervention_consistency_loss
@@ -158,7 +158,7 @@ def train_tier2(
     ds = RendererDataset(cfg)
     bs = int(cfg.get_path("train.tier2.batch_size", 8))
     bs = max(1, min(bs, len(ds)))
-    loader = DataLoader(ds, batch_size=bs, shuffle=True, collate_fn=collate_renderer)
+    loader = make_loader(ds, bs, collate_renderer, cfg)
 
     cdir = _ckpt_dir(cfg)
     resume = resume or ckpt.latest(cdir)

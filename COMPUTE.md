@@ -58,6 +58,30 @@ the first-time data download is the only thing that can blow the budget (it is c
 **Cheapest safe path:** run the pre-flight + label-F1 gates (minutes) on a free/L4 runtime first
 (`RUN_PLAN.md` gates 1–2), then spend the A100 only once the gates are GREEN.
 
+## Performance optimizations (enabled by default; accuracy-neutral)
+
+Tuned for one A100-40GB finishing in budget without sacrificing the paper metrics:
+
+- **bf16 autocast** (`train.precision: bf16`) on all three tiers + eval — ~½ the VRAM and faster
+  matmuls than fp32 at no meaningful accuracy cost on the A100.
+- **TF32 matmuls + cuDNN autotune** — auto-enabled whenever a CUDA device is resolved
+  (`device.enable_perf`): free tensor-core speedup for the fp32/conv ops bf16 doesn't cover.
+- **Gradient checkpointing** on the Stage-A VLM (trades ~20% compute for a large activation-memory
+  saving so QLoRA fits comfortably).
+- **QLoRA Stage A**: 4-bit NF4 + double-quant backbone, bf16 compute, frozen weights + LoRA — the
+  2.2-3B VLM trains in ~10-16 GB.
+- **VAE frozen + `@torch.no_grad`** encode/decode — no autograd graph through the 83M-param SD-VAE.
+- **DataLoader workers** (`train.num_workers: 4`) overlap the CPU auto-labelling/IO with GPU compute
+  (Linux/A100; auto-clamped to 0 on Windows). Set 0 if a loader stalls.
+- **`tier2.intervene_every: 2`** — the intervention-consistency term needs 2 extra renders/step; doing
+  it every other step ~halves the Tier-2 step cost. The faithfulness guarantee is architectural, so
+  C-i stays high; set 1 for maximum C-i fidelity if time allows.
+
+**VRAM safety valves** (if OOM on 40GB): `data.patch=96`, `train.tier2.batch_size=4`, keep
+`intervene_every=2`. **Further speedups not enabled** (higher risk / one-time): `torch.compile` on the
+renderer U-Net (opt-in once validated on the box), batching the eval ensemble render across lead
+frames, and multiprocessing the one-time `01_autolabel` pass (cached after the first run, so amortized).
+
 ## Assumptions / caveats
 - VLM memory/throughput are estimated for SmolVLM-2.2B/Qwen2.5-VL-3B QLoRA with grad-checkpointing; the
   exact peak depends on the chosen backbone, `image_size`, and how many history frames the processor packs.

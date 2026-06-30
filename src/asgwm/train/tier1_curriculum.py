@@ -19,8 +19,8 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
 
+from asgwm.data.dataset import make_loader
 from asgwm.asg import ASG, parse
 from . import checkpoint as ckpt
 
@@ -93,7 +93,7 @@ def run_phase(cfg, phase: str, ckpt_in: Optional[str]) -> str:
     micro_bs = int(cfg.get_path("train.tier1.micro_batch", 2))
     micro_bs = max(1, min(micro_bs, len(ds)))
     grad_accum = max(1, int(cfg.get_path("train.tier1.grad_accum", 1)))
-    loader = DataLoader(ds, batch_size=micro_bs, shuffle=True, collate_fn=_vlm_collate)
+    loader = make_loader(ds, micro_bs, _vlm_collate, cfg)
 
     model = StageAVLM.from_config(cfg)
     if hasattr(model, "to"):

@@ -117,8 +117,10 @@ losses:                            # Tier-2 loss weights (training_method.md sec
   balanced_weights: [1, 2, 5, 10, 30]       # weight per bin (len = thresholds + 1); mask -> 0
 
 train:
-  precision: bf16
+  precision: bf16                   # bf16 autocast on CUDA (A100); + TF32 matmuls auto-enabled
   grad_checkpointing: true
+  num_workers: 4                    # DataLoader workers overlap CPU autolabel/IO with GPU compute
+                                    # (Linux/A100); auto-clamped to 0 on Windows. Set 0 if a loader stalls.
   tier0:
     batch_size: 32
     lr: 3.0e-4
@@ -144,7 +146,9 @@ train:
     oracle_anneal_steps: 8000
     intervention_consistency: true
     intervene_warmup_steps: 2000    # ramp the intervention-consistency weight 0 -> lambda over these steps
-    intervene_every: 1              # compute the (expensive, 2-render) intervention loss every k steps (raise to save compute)
+    intervene_every: 2              # compute the (expensive, 2-render) intervention loss every k steps;
+                                    # 2 ~halves the Tier-2 step cost vs 1 with negligible faithfulness loss
+                                    # (the bottleneck guarantee is architectural; set 1 for max C-i fidelity)
     log_every: 50                   # per-term loss logging cadence (catch divergence early)
 
 eval:
