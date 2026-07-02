@@ -7,9 +7,10 @@ Each function realizes one part of the suite:
     C-iv  asg_accuracy              : inferred ASG vs gold subset (Hungarian centroid matching).
     C-v   counterfactual_demo       : base vs edited fields + diffs for the live demo.
 
-The faithfulness signal is entailed by the architecture (architecture.md sections 4, 6): because
-the renderer's only future-bearing path is Z = ASG_{t+h} (+) advect_blind, perturbing the ASG
-must move the field, and zeroing it must collapse the field to advection.
+The faithfulness signal is entailed by the architecture (philosophy.md section 3.3,
+architecture.md sections 4, 6): because the renderer's only future-bearing path is
+Z = ASG_{t+h} (+) advect_blind, perturbing the ASG must move the field, and zeroing
+it must collapse the field to advection.
 
 LeakageCLUB implements the CLUB upper bound on mutual information (cheng2020club).
 """

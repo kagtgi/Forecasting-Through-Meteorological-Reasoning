@@ -1,14 +1,15 @@
 # Forecasting Through Meteorological Reasoning — ASG-WM / FaithCast
 
-**A precipitation nowcaster whose language reasoning is load-bearing by construction.**
-A vision–language model reads a short radar history, autonomously reasons about the
-precipitation system, and emits an explicit, human-readable **Atmospheric Scene Graph
-(ASG)**; a physics-informed renderer then materializes the future radar field **from that
-state and nothing else** — so the explanation is *faithful by construction* and provable by
-intervention.
+**A precipitation nowcaster whose structured world-model state is load-bearing by construction.**
+A vision–language model reads a short radar history, constructs an explicit, human-readable
+**Atmospheric Scene Graph (ASG)**; a physics-constrained transition rolls that state forward;
+a physics-informed renderer then materializes the future radar field **from that state and
+nothing else** — so faithfulness is *architecturally entailed* and provable by intervention.
 
 > Technical handle: **ASG-WM** (Atmospheric Scene Graph world model). Working title: *FaithCast*.
-> Target venue: *Scientific Reports*. This repository is the **framework** (no baselines yet).
+> Target venue: *Scientific Reports*. This repository is the **framework** — code and specs are
+> complete; quantitative paper results are **[TBR]** until the staged Colab A100 compute plan runs.
+> Method philosophy: [`specs/philosophy.md`](specs/philosophy.md).
 
 ---
 
@@ -43,6 +44,7 @@ information bottleneck, not by assertion.
 │   ├── fig_*.svg / fig_*.pdf        (figures; data-figures carry illustrative TBR values)
 │   └── wlscirep.cls, naturemag-doi.bst, template/                          (LaTeX support)
 ├── specs/                   ← design specs (the "why" behind the code)
+│   ├── philosophy.md              (method framework ontology — start here for the "why")
 │   ├── idea.md architecture.md datasource.md training_method.md eval.md
 │   └── FEASIBILITY.md FIGURES.md
 ├── datasets/                ← data tooling + downloaded data (gitignored); see datasets/README.md

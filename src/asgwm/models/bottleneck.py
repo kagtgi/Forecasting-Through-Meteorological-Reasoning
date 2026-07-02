@@ -1,7 +1,7 @@
 """The faithful bottleneck — the only path from the world-model state to the pixels.
 
-This module implements the core mechanism of ASG-WM (architecture.md section 4 and
-section 8): the renderer input is *exactly*
+This module implements the core mechanism of ASG-WM (architecture.md section 4,
+philosophy.md section 3.3): the renderer input is *exactly*
 
     Z = [ ASG_{t+h}  ⊕  advect_blind(X_t) ],
 

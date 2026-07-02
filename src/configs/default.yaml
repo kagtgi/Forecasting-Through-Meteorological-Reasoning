@@ -166,3 +166,13 @@ eval:
   intervention_types: [translate, regime_flip, growth_scale, motion_rotate]
   spatial_tol_km: 10.0
   intensity_tol_dbz: 3.0
+  eval_grid: 384                    # spatial cap for eval (384 = full canonical; 96 = fast smoke)
+  # Knowledge-category ablation flags (eval.md section D.1, philosophy.md section 3.1).
+  # When false, the corresponding context channels are zeroed at eval time.
+  # Stub hooks in harness.apply_knowledge_ablation; rows are [TBR] until Tier-2 checkpoint.
+  knowledge_ablation:
+    equations: true                   # advection op + PINN continuity (Stage B)
+    seasonal: true                    # month-of-year encoding
+    geographic: true                # DEM + coastline mask
+    diurnal: true                     # solar angle + time-of-day
+    synoptic: true                    # CAPE/CIN/shear/PWAT grids

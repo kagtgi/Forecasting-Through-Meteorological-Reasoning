@@ -103,7 +103,7 @@ The system proceeds through five explicit steps that mirror how an operational m
 \emph{(1)~Observe}: the VLM ingests multi-channel radar/satellite imagery $X_{t-k:t}$ (VIL, IR069, IR107, GLM) and physical context (CAPE, CIN, shear; AFD text at training time only).
 \emph{(2)~Identify}: a five-phase curriculum (Ph-1 VQA to Ph-5 equation-aware CoT) trains the VLM to reason \emph{per-frame}---asserting cell locations, intensities, regime labels, and growth tendencies---and emit a structured per-frame object set; the curriculum is a training device, not an inference step.
 \emph{(3)~Track}: an explicit lightweight tracker links per-frame identifications across the $k$-frame history via nearest-centroid association, assigns stable object IDs from trajectory displacement, and produces the trajectory-enriched current state $\text{ASG}_t$ whose motion vectors are derived from multi-frame tracks rather than single-frame centroid differences.
-\emph{(4)~Analyze}: a Transition Transformer advances the world model to $\text{ASG}_{t+h}$ under the advection PDE ($\partial\phi/\partial t + \mathbf{v}\!\cdot\!\nabla\phi = 0$), mass-conservation residuals, and equation-aware prompting.
+\emph{(4)~Analyze}: a Transition Transformer advances the world model to $\text{ASG}_{t+h}$ under the advection PDE ($\partial\phi/\partial t + \mathbf{v}\!\cdot\!\nabla\phi = 0$) and mass-conservation residuals; readout~\#2 is $\texttt{render\_NL\_delta}(\text{ASG}_t, \text{ASG}_{t+h})$, a deterministic downstream render.
 \emph{(5)~Nowcast}: a physics renderer materialises the forecast field exclusively from $Z = \text{ASG}_{t+h} \oplus \texttt{advect\_blind}(X_t)$ via $\hat{X}_{t+h} = \texttt{advect\_blind}(X_t) + \Delta(Z)$, with no encoder latents reaching Stage~C---making the structured state causally load-bearing by construction.
 Separating Identification from Tracking means the VLM answers only \emph{what is here now?}; temporal reasoning (\emph{where did this come from?}) is handled by a dedicated, inspectable module.}
 \label{fig:system}
@@ -114,10 +114,10 @@ If a model emits a plausible rationale alongside a field produced from raw encod
 We therefore shift the burden from the prose to a \emph{structured} state and make that state the only causal path to the forecast.
 We introduce ASG-WM (Atmospheric Scene Graph World Model), a five-step reasoning pipeline built on three learned modules, in which an explicit symbolic state---not a natural-language rationale---is load-bearing by construction (Figure~\ref{fig:system}).
 Stage~A, a small QLoRA-quantised VLM~\cite{marafioti2025smolvlm,dettmers2023qlora}, performs per-frame storm-cell identification; an explicit lightweight tracker then links these identifications across the observation history to produce a trajectory-enriched Atmospheric Scene Graph (ASG): a constrained-grammar state encoding per-storm-object positions, stable cross-frame identities, motion histories, growth--decay tendencies, regime labels, and per-attribute uncertainty.
-Stage~B, a small transition transformer, rolls the ASG forward under a differentiable advection operator, PINN-style~\cite{raissi2019pinn} continuity residuals, and equation-aware prompting.
+Stage~B, a small transition transformer, rolls the ASG forward under a differentiable advection operator and PINN-style~\cite{raissi2019pinn} continuity residuals (equation-aware \emph{training} prompts in Stage~A Ph-5 ground perception on the governing relations).
 Stage~C, a latent rectified-flow renderer~\cite{liu2023rectifiedflow,rombach2022ldm}, materialises the forecast field from the predicted ASG and a future-blind advection of the current frame---and from no other input.
 Because Stage~C has no access to the encoder's representation of the radar history, faithfulness becomes testable by intervention, turning counterfactual simulatability~\cite{chen2023counterfactual} from a correlational probe into a property entailed by the architecture (formalised in the \emph{Theoretical framework}).
-A human-readable description and forecast rationale are emitted alongside the state, but are derived from it, not relied upon as the computational driver.
+Human-readable descriptions are downstream renders of the ASG ($\texttt{render\_NL}$, $\texttt{render\_NL\_delta}$), not relied upon as the computational driver (Definition~\ref{def:reasoning}).
 
 This work builds on a line of physics-informed nowcasting in which physical knowledge enters the model as an explicit constraint---most directly our own ThoR framework~\cite{ta2025thor}, which embeds an advection--diffusion PDE as a soft constraint via the Theory of Functional Connections.
 ASG-WM advances that lineage by lifting physics from a fixed PDE penalty to a learned, inspectable, structured world state, and by making that state---rather than a hidden latent or a free-text rationale---the only causal route to the forecast.
@@ -200,6 +200,13 @@ A state representation $S$ is an \emph{atmospheric world model} if it satisfies:
 
 The ASG satisfies Definition~\ref{def:wm} by construction: Stage~A maximises predictive sufficiency under a hard capacity cap (sufficiency), Stage~B is the transition operator $T$ (transitionability), and Stage~C is the decoder $\mathcal{R}$ (renderability).
 
+\begin{definition}[Meteorological reasoning]
+\label{def:reasoning}
+In ASG-WM, \emph{meteorological reasoning} is the construction and roll-forward of an explicit, typed world-model state---not free-form natural-language chain-of-thought.
+The load-bearing reasoning artifact is the Atmospheric Scene Graph $A$: a discrete set of storm objects with positions, motion vectors, regime labels, and growth--decay tendencies, advanced by a physics-constrained transition $T$ and materialised by a renderer $\mathcal{R}$.
+Natural-language readouts are deterministic downstream renders of the ASG ($\texttt{render\_NL}$, $\texttt{render\_NL\_delta}$) and are not on the causal path to the forecast; faithfulness is tested by intervening on $A$, not by editing prose.
+\end{definition}
+
 \begin{definition}[Architectural faithfulness]
 \label{def:faith}
 A forecaster is \emph{architecturally faithful} to state $A$ if the forecast depends on the observation history only through $A$ and the future-blind term $B$; formally $F \perp\!\!\!\perp X_{\le t} \mid (A,B)$, equivalently
@@ -216,11 +223,17 @@ Two consequences follow as architectural entailments rather than empirical hopes
 \emph{(Collapse)} setting $A=\varnothing$ yields $F=\mathcal{R}(\varnothing,B)=B$, i.e.\ the forecast collapses to advection, because the rendered residual obeys $\Delta(Z)\!\to\!0$.
 The condition $I(B; X_{t+1:t+n}\mid X_{\le t})=0$ is not assumed but audited empirically (Result~C-iii).
 
+\noindent\textbf{Proposition (bottleneck entailments).}
+Under the wiring $F=\mathcal{R}(A \oplus B)$ with no encoder skip connections:
+(i)~\emph{Collapse}---zeroing $A$ yields $F \approx B$ (pure advection);
+(ii)~\emph{Intervention}---for a structured perturbation $\delta$ on $A$, the field change $\Delta F$ is predictable from $\delta$.
+These are architectural consequences of the bottleneck, not correlational claims about model explanations; they are the targets of the faithfulness suite (Results~C-i, C-ii).
+
 % ===================================================================
 \section*{Results}
 % ===================================================================
 
-\noindent\emph{All quantitative entries in this manuscript are reported as [TBR] (to be reported). This revised manuscript specifies the complete architecture, evaluation protocol, and experiment designs; numerical results will populate the tables and figures on completion of the staged compute plan described in Methods. Figures with illustrative values are labelled accordingly.}
+\noindent\emph{All quantitative entries in this manuscript are reported as [TBR] (to be reported). This framework manuscript specifies the complete architecture, evaluation protocol, and experiment designs; numerical results will populate the tables and figures on completion of the staged Colab A100 compute plan (see repository \texttt{TUTORIAL.md}). Figures with illustrative values are labelled accordingly. Neural baseline rows remain [TBR] by design until their adapters are implemented; only pysteps and ASG-WM are evaluated in the current framework.}
 
 \subsection*{Overall Forecasting Skill}
 
@@ -558,7 +571,8 @@ The empirical results are reported as TBR; once populated, the experiments speci
 \subsection*{Framework Overview}
 
 ASG-WM structures nowcasting as a five-step reasoning process (Figure~\ref{fig:system}) that mirrors the inferential chain of operational weather analysis: observe the raw data, identify what is present in each frame, track how objects evolve through time, analyze the dynamics, and materialise the forecast.
-The full data-flow architecture---encoder, structured-state grammar, physics-constrained transition, symbolic admissibility check, faithful bottleneck, and rectified-flow renderer---is shown in Figure~\ref{fig:arch}.
+The full data-flow architecture---encoder, structured-state grammar, physics-constrained transition, faithful bottleneck, and rectified-flow renderer---is shown in Figure~\ref{fig:arch}.
+An optional symbolic admissibility certificate (supplementary prototype, not a core contribution) can post-check predicted transitions for physical consistency.
 
 \begin{figure*}[ht]
 \centering
@@ -566,7 +580,7 @@ The full data-flow architecture---encoder, structured-state grammar, physics-con
 \caption{\textbf{ASG-WM data-flow architecture.}
 Left to right: (\emph{Inputs}) a radar--satellite history $X_{t-k:t}$, gridded context $C$, and the VLM curriculum prompt (AFD text is training-time only; no human text at inference).
 (\emph{Stage~A}) a QLoRA VLM encodes the sequence into the structured Atmospheric Scene Graph $\text{ASG}_t$ and a grammar-constrained NL readout, drawing on curriculum-learned seasonal/geographic/diurnal/synoptic priors.
-(\emph{Stage~B}) a transition transformer advances the state to $\text{ASG}_{t+h}$ as a residual on advection, with governing-equation injection (advection operator, PINN continuity, equation-aware prompting), an optional symbolic admissibility check, and a forecast-rationale readout.
+(\emph{Stage~B}) a transition transformer advances the state to $\text{ASG}_{t+h}$ as a residual on advection, with governing-equation injection (differentiable advection operator, PINN continuity loss), an optional supplementary symbolic admissibility check, and a downstream NL readout $\texttt{render\_NL\_delta}(\text{ASG}_t, \text{ASG}_{t+h})$.
 (\emph{Bottleneck}) the renderer receives only $Z = \text{ASG}_{t+h} \oplus \texttt{advect\_blind}(X_t)$---no encoder latents or skip connections.
 (\emph{Stage~C}) a few-step latent rectified-flow renderer produces the forecast sequence as $\texttt{advect\_blind}(X_t) + \Delta(Z)$, so zeroing the ASG collapses the forecast to advection.}
 \label{fig:arch}
@@ -595,11 +609,11 @@ Separating Identification (spatial, single-frame) from Tracking (temporal, multi
 
 \item \textbf{Analyze.}
 Stage~B's Transition Transformer advances the trajectory-enriched world model from $\text{ASG}_t$ to $\text{ASG}_{t+h}$ using three governing-equation injection points:
-(a)~a differentiable semi-Lagrangian advection operator ($\partial\phi/\partial t + \mathbf{v}\!\cdot\!\nabla\phi = 0$);
-(b)~a PINN-style mass-conservation residual ($\partial g/\partial t + \nabla\!\cdot\!(g\mathbf{v}) \approx 0$);
-and (c)~equation-aware prompting that states the advection and growth-decay relations in the system prompt.
+(a)~a differentiable semi-Lagrangian advection operator in Stage~B ($\partial\phi/\partial t + \mathbf{v}\!\cdot\!\nabla\phi = 0$);
+(b)~a PINN-style mass-conservation residual in Stage~B ($\partial g/\partial t + \nabla\!\cdot\!(g\mathbf{v}) \approx 0$);
+and (c)~equation-aware \emph{training} prompts in Stage~A Ph-5 that ground perception on the advection and growth--decay relations.
 Because Stage~B receives motion vectors derived from multi-frame track displacement, its task is pure dynamics prediction---\emph{how will these objects evolve?}---rather than the harder joint problem of tracking and prediction.
-Stage~B simultaneously emits a natural-language forecast rationale before predicting $\text{ASG}_{t+h}$, so that the symbolic and linguistic reasoning are co-generated from the same physics-constrained dynamics.
+After predicting $\text{ASG}_{t+h}$, readout~\#2 is computed as $\texttt{render\_NL\_delta}(\text{ASG}_t, \text{ASG}_{t+h})$---a deterministic, grammar-faithful template render of the transition, not a freeform language-model output from Stage~B (Definition~\ref{def:reasoning}).
 The Information Bottleneck objective trains the ASG to be a minimal sufficient statistic:
 \[
 \mathcal{L}_\text{IB} = \beta\,I(\text{ASG};\,X_{t-k:t}) - I(\text{ASG};\,X_{t+1:t+n}).
@@ -718,10 +732,10 @@ Three governing-equation injection points constrain the dynamics without adding 
 \begin{enumerate}[leftmargin=*,nosep]
     \item \textbf{Differentiable advection operator.} Object centroids and the growth-decay field are advanced by a semi-Lagrangian warp using the ASG motion vectors; the network predicts the \emph{residual} on top of this advection, so the linear-motion baseline is built in.
     \item \textbf{PINN-style residual losses~\cite{raissi2019pinn}.} A mass-conservation residual on the growth field ($\partial g / \partial t + \nabla \cdot (g\mathbf{v}) \approx 0$) and a motion-field smoothness residual penalise equation violation on the predicted state.
-    \item \textbf{Equation-aware prompting.} The governing relations (advection equation $\partial\phi/\partial t + \mathbf{v}\cdot\nabla\phi = 0$; mass conservation; growth-decay parameterisation as a function of CAPE, CIN, and shear) are stated in the system prompt so the VLM reasons explicitly with the equations.
+    \item \textbf{Equation-aware training prompts (Stage~A, Ph-5).} The governing relations (advection equation $\partial\phi/\partial t + \mathbf{v}\cdot\nabla\phi = 0$; mass conservation; growth-decay parameterisation as a function of CAPE, CIN, and shear) are stated in the VLM curriculum system prompt so perception training grounds on the equations. At inference, equation injection in the transition is via items~(1)--(2) above.
 \end{enumerate}
 
-\noindent Stage B emits a second constrained NL rationale summarising the predicted evolution (regime changes, merges/splits, initiations, dissipations).
+\noindent After predicting $\text{ASG}_{t+h}$, readout~\#2 is $\texttt{render\_NL\_delta}(\text{ASG}_t, \text{ASG}_{t+h})$---a deterministic, grammar-faithful template summarising the predicted evolution (regime changes, merges/splits, initiations, dissipations).
 
 \subsection*{The Faithful Information Bottleneck}
 

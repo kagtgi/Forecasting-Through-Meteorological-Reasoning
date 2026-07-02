@@ -17,8 +17,8 @@ Full 12-baseline suite → Supplementary.
 | # | Figure (label) | File | Type | Status | To finalize |
 |---|----------------|------|------|--------|-------------|
 | 1 | Physics-informed gap (`fig:knowledge`) | `fig_knowledge.pdf` | schematic | ✅ final | — |
-| 2 | Conceptual 5-step framework (`fig:system`) | `fig_framework.pdf` | schematic | ✅ final | — |
-| 3 | **Detailed data-flow architecture** (`fig:arch`) | `fig_architecture.pdf` | schematic | ✅ final | — |
+| 2 | Conceptual 5-step framework (`fig:system`) | `fig_framework.pdf` | schematic | ✅ final | NL readouts = downstream `render_NL` / `render_NL_delta` renders |
+| 3 | **Detailed data-flow architecture** (`fig:arch`) | `fig_architecture.pdf` | schematic | ✅ final | readout #2 = `render_NL_delta` after Stage B predicts ASG_{t+h} |
 | 4 | **Stage C renderer NN architecture** (`fig:renderer`) | `fig_renderer.pdf` | schematic | ✅ final | — |
 | 5 | Regime-stratified CSI (`fig:regime`) | `fig_regime.pdf` | data (TBR) | ⏳ illustrative | fill real per-regime CSI for the 6 methods + bootstrap CIs |
 | 6 | Faithfulness 4-panel (`fig:faith`) | `fig_faith.pdf` | data (TBR) | ⏳ illustrative | C-i…C-iv real values |
@@ -38,7 +38,8 @@ Full 12-baseline suite → Supplementary.
   with motion-vector overlays + a dominant-direction compass, before/after an ASG edit — the
   "edit the state → watch the field respond" demonstration on real radar.
 
-## Optional (symbolic admissibility layer, prototype)
+## Optional (symbolic admissibility layer, supplementary prototype)
 
 - **Certificate / ambiguity figure**: certificate pass-rate by regime + the dual-SAT ambiguity
-  map (admissible-future set). Gate on fixing object-ID stability in the labeler first.
+  map (admissible-future set). **Not a core contribution** — see `philosophy.md` §8.
+  Gate on fixing object-ID stability in the labeler first.

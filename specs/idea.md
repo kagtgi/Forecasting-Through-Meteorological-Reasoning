@@ -1,12 +1,16 @@
 # idea.md — Faithful Reasoning Nowcasting via a Materialized Atmospheric Scene Graph
 
-> **Working title:** *FaithCast* — a precipitation nowcaster whose language reasoning is **load-bearing by construction**, not decorative. *(Name is a placeholder; swap freely. The technical handle used throughout these docs is **ASG-WM**: an Atmospheric-Scene-Graph world model.)*
+> **Working title:** *FaithCast* — a precipitation nowcaster whose structured world-model state is **load-bearing by construction**, not decorative. *(Name is a placeholder; swap freely. The technical handle used throughout these docs is **ASG-WM**: an Atmospheric-Scene-Graph world model.)*
+>
+> **Philosophy:** see `philosophy.md` for the unified method-framework ontology (what "meteorological reasoning" means, the three-layer model, claim boundaries).
 
 ---
 
 ## 1. One-sentence thesis
 
-A vision-language model reads a short radar history, **autonomously reasons in language** about the precipitation system (no human-supplied text at inference), emits an **explicit, human-readable state** (an *Atmospheric Scene Graph*, ASG), and a physics-informed renderer materializes the future radar field **from that state and nothing else** — so the explanation is **faithful by construction** and provable by intervention.
+A vision-language model reads a short radar history, constructs an **explicit, human-readable world-model state** (an *Atmospheric Scene Graph*, ASG; no human-supplied text at inference), a physics-constrained transition rolls that state forward, and a physics-informed renderer materializes the future radar field **from that state and nothing else** — so faithfulness is **architecturally entailed** and provable by intervention.
+
+**"Forecasting Through Meteorological Reasoning"** means forecasting *through* an explicit, intervenable ASG state — not through free-form chain-of-thought prose. Natural language is a downstream render of the ASG (`render_NL`, `render_NL_delta`); the load-bearing reasoning is the structured state itself (`philosophy.md` §2).
 
 The contribution is not "a VLM that nowcasts." It is the **faithfulness-by-bottleneck** mechanism that makes interpretability real rather than cosmetic, demonstrated on nowcasting because nowcasting is the rare physical domain where an explicit state, a governing-equation transition, and an exact renderer can all be written down and checked.
 

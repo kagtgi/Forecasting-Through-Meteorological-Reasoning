@@ -4,7 +4,12 @@ This module is the single source of truth for the ASG data contract used by ever
 stage of ASG-WM (perception -> transition -> renderer) and by the evaluation suite.
 It depends only on the standard library + numpy so it is importable without torch.
 
-Reference: architecture.md sections 2 and 9 (grammar / anti-hallucination contract).
+Reference: architecture.md sections 2 and 9 (grammar / anti-hallucination contract);
+philosophy.md section 9 (v1 schema contract).
+
+v1 load-bearing contract: the 10-field OBJECT line in ``asg/grammar.py``. Extended
+fields (``morphology``, ``conv_mode``, topology events) are reserved for v2 and are
+not part of the grammar, training targets, or bottleneck rasterization.
 """
 from __future__ import annotations
 

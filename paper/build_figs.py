@@ -220,7 +220,7 @@ def fig_architecture():
     s += txt(x + w / 2, y + 64, "OBJECT(id, c, a,", T_MONO, INK, mono=True)
     s += txt(x + w / 2, y + 80, "p, v, regime, g)", T_MONO, INK, mono=True)
     s += txt(x + w / 2, y + 98, "up to 16 objects", T_SMALL, MUT)
-    s += chip(x + 16, y + 120, w - 32, 28, "NL readout #1", "purple")
+    s += chip(x + 16, y + 120, w - 32, 28, "render_NL (readout #1)", "purple")
     s += txt(x + w / 2, y + 162, "+ learned met. priors", T_SMALL, FAM["green"][1], style="italic")
 
     x, w = xs[2], cols[2][2]
@@ -232,9 +232,9 @@ def fig_architecture():
     cw = (w - 36) / 3
     s += chip(x + 16, y + 74, cw, 26, "advect", "green", T_SMALL)
     s += chip(x + 18 + cw, y + 74, cw, 26, "PINN", "green", T_SMALL)
-    s += chip(x + 20 + 2 * cw, y + 74, cw, 26, "eq-prompt", "green", T_SMALL)
-    s += chip(x + 16, y + 106, w - 32, 26, "symbolic check (Z3)", "red")
-    s += chip(x + 16, y + 138, w - 32, 26, "NL readout #2", "amber")
+    s += chip(x + 20 + 2 * cw, y + 74, cw, 26, "Ph-5 eq", "green", T_SMALL)
+    s += chip(x + 16, y + 106, w - 32, 26, "symbolic (suppl.)", "red")
+    s += chip(x + 16, y + 138, w - 32, 26, "render_NL_delta", "amber")
 
     x, w = xs[3], cols[3][2]
     s += rect(x, y + 30, w, bh - 60, FAM["red"][0], FAM["red"][1], 1.6, 8, "6 3")

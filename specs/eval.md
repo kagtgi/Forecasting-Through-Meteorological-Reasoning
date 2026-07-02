@@ -1,6 +1,8 @@
 # eval.md — Experiments, metrics, and the faithfulness proof
 
 > Every experiment is **tier-tagged** (which compute tier produces it). The non-negotiable: **the faithfulness suite (C) is the proof of the contribution.** Skill numbers (A) without C reduce the paper to "another nowcaster"; C without A is un-anchored. Lead with C + B.
+>
+> **Philosophy:** see `philosophy.md` for claim boundaries. Neural baselines (RainNet, NowcastNet, LangPrecip, ThoR) are intentionally stubbed; only **pysteps** and **ASG-WM** are evaluated in the current framework. Baseline rows emit **[TBR]** until adapters are implemented — this is by design, not an oversight.
 
 ---
 
@@ -31,7 +33,22 @@ Skill **stratified by regime** (initiation / growth / decay / steady), using the
 4. **C-iv ASG accuracy.** Inferred ASG vs the hand-labeled gold subset (`datasource.md` §2) and vs forecasters where available.
 
 ### D — Ablations / knowledge sources *(Tier 1)*
+
 Stages and losses; VLM size; **±ERA5/HRRR context**; **±lightning / water-vapor channels**; templated vs LLM-enriched NL; and the headline split — **±NL meteorological priors** vs **±physics equations** (advection operator, continuity/mass residual, equation-aware prompting) — to isolate **which kind of knowledge drives the gain**. This is what separates "physics helps" from "a bigger prompt helps."
+
+#### D.1 Five knowledge categories (operational definitions)
+
+Each category has a defined training signal and a **matched held-out benchmark slice** that stresses the removed knowledge. A removal ablation alone cannot show the model *used* a knowledge type; the matched benchmark pairing is required (`philosophy.md` §3.1).
+
+| Category | Training signal | Zero-out at eval (`eval.knowledge_ablation`) | Matched held-out slice |
+|---|---|---|---|
+| **Equations** | Advection op, PINN continuity loss, Ph-5 prompts | `equations: false` | All events (baseline) |
+| **Seasonal** | Month-of-year encoding, AFD seasonal refs | `seasonal: false` | Warm-season (Apr–Sep) vs cool-season (Oct–Mar) |
+| **Geographic** | DEM topography, coastline mask | `geographic: false` | Complex orography (DEM variance > p90) vs flat interior |
+| **Diurnal** | Solar angle, time-of-day encoding | `diurnal: false` | Afternoon (12–18 local) vs nocturnal MCS (00–06 local) |
+| **Synoptic** | CAPE/CIN/shear/PWAT grids | `synoptic: false` | Initiation events vs steady-advection events |
+
+Config flags live in `src/configs/default.yaml` under `eval.knowledge_ablation`. The harness exposes stub hooks (`harness.apply_knowledge_ablation`) that zero-out context channels when a checkpoint exists; until Tier-2 completes, ablation rows are **[TBR]**.
 
 **Eval discipline (Nature-family rigor, cf. YingLong `xu2025yinglong`).** Every ablation table reports (a) **significance on the skill gap** — bootstrap confidence intervals or a paired test over the eval set, not bare point estimates, so a claimed gain is shown to exceed noise; and (b) **parameter count and compute cost** (params / FLOPs or latency) per row, so a gain is read against its cost rather than in isolation. A "physics helps" row that needs 2× compute for a within-interval delta is not a win, and the table must make that visible.
 

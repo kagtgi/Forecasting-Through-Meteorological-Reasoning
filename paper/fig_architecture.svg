@@ -32,7 +32,7 @@
 <text font-family="'Courier New',monospace" font-size="12" fill="#202124" x="282.0" y="160.0" text-anchor="middle" dominant-baseline="central">p, v, regime, g)</text>
 <text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5F6368" x="282.0" y="178.0" text-anchor="middle" dominant-baseline="central">up to 16 objects</text>
 <rect x="210.0" y="200.0" width="144.0" height="28.0" rx="5" fill="#F3E8FD" stroke="#8430CE" stroke-width="1.0"/>
-<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5B1C9E" x="282.0" y="214.0" text-anchor="middle" font-weight="600" dominant-baseline="central">NL readout #1</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5B1C9E" x="282.0" y="214.0" text-anchor="middle" font-weight="600" dominant-baseline="central">render_NL (readout #1)</text>
 <text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#188038" x="282.0" y="242.0" text-anchor="middle" font-style="italic" dominant-baseline="central">+ learned met. priors</text>
 <rect x="388.0" y="80.0" width="188.0" height="176.0" rx="8" fill="#FEF7E0" stroke="#E37400" stroke-width="1.3"/>
 <text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#8A4B00" x="482.0" y="98.0" text-anchor="middle" font-weight="700" dominant-baseline="central">Transition</text>
@@ -44,11 +44,11 @@
 <rect x="456.7" y="154.0" width="50.7" height="26.0" rx="5" fill="#E6F4EA" stroke="#188038" stroke-width="1.0"/>
 <text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B5325" x="482.0" y="167.0" text-anchor="middle" font-weight="600" dominant-baseline="central">PINN</text>
 <rect x="509.3" y="154.0" width="50.7" height="26.0" rx="5" fill="#E6F4EA" stroke="#188038" stroke-width="1.0"/>
-<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B5325" x="534.7" y="167.0" text-anchor="middle" font-weight="600" dominant-baseline="central">eq-prompt</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#0B5325" x="534.7" y="167.0" text-anchor="middle" font-weight="600" dominant-baseline="central">Ph-5 eq</text>
 <rect x="404.0" y="186.0" width="156.0" height="26.0" rx="5" fill="#FCE8E6" stroke="#D93025" stroke-width="1.0"/>
-<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#A50E0E" x="482.0" y="199.0" text-anchor="middle" font-weight="600" dominant-baseline="central">symbolic check (Z3)</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#A50E0E" x="482.0" y="199.0" text-anchor="middle" font-weight="600" dominant-baseline="central">symbolic (suppl.)</text>
 <rect x="404.0" y="218.0" width="156.0" height="26.0" rx="5" fill="#FEF7E0" stroke="#E37400" stroke-width="1.0"/>
-<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#8A4B00" x="482.0" y="231.0" text-anchor="middle" font-weight="600" dominant-baseline="central">NL readout #2</text>
+<text font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#8A4B00" x="482.0" y="231.0" text-anchor="middle" font-weight="600" dominant-baseline="central">render_NL_delta</text>
 <rect x="594.0" y="110.0" width="140.0" height="116.0" rx="8" fill="#FCE8E6" stroke="#D93025" stroke-width="1.6" stroke-dasharray="6 3"/>
 <text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#A50E0E" x="664.0" y="136.0" text-anchor="middle" font-weight="700" dominant-baseline="central">FAITHFUL</text>
 <text font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#A50E0E" x="664.0" y="154.0" text-anchor="middle" font-weight="700" dominant-baseline="central">BOTTLENECK</text>

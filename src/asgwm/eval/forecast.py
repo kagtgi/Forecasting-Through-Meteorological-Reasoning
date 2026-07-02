@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from asgwm.asg import ASG
+from asgwm.asg.render_nl import render_NL, render_NL_delta
 from asgwm import baselines as B
 
 
@@ -99,15 +100,22 @@ def _load_asgwm(cfg) -> Optional[Dict]:
 
 
 def _asgwm_pred(hist, asg_seq, cfg, models, n_out, K):
-    """Return (pred[n_out,H,W], ens[K,n_out,H,W]).
+    """Return (pred[n_out,H,W], ens[K,n_out,H,W], trace_dict).
 
     Real path: ASG_{t+h} from Stage B, rendered per-frame on the advection sequence.
     Fallback: future-blind advection (used pre-training and on any error).
+
+    trace_dict carries NL readouts for gallery / faithfulness demos (philosophy.md section 2.2):
+        nl_t      = render_NL(ASG_t)
+        nl_delta  = render_NL_delta(ASG_t, ASG_{t+h})
     """
     from asgwm.data.advection import advect_blind
     adv = np.asarray(advect_blind(hist, n_out), dtype=np.float32)  # [n_out,H,W]
+    trace: Dict = {}
+    if asg_seq is not None:
+        trace["nl_t"] = render_NL(asg_seq.asg_t)
     if models is None:
-        return adv, np.repeat(adv[None], K, axis=0)
+        return adv, np.repeat(adv[None], K, axis=0), trace
     try:
         import torch
         from asgwm.models.bottleneck import build_Z
@@ -115,6 +123,8 @@ def _asgwm_pred(hist, asg_seq, cfg, models, n_out, K):
         H, W = adv.shape[-2:]
         dev = models.get("device", torch.device("cpu"))
         asg_th = models["transition"].predict(asg_seq.asg_t, None)
+        if asg_seq is not None:
+            trace["nl_delta"] = render_NL_delta(asg_seq.asg_t, asg_th)
         renderer = models["renderer"]
         steps = int(cfg.get_path("stage_c.flow_steps", 4))
 
@@ -131,10 +141,10 @@ def _asgwm_pred(hist, asg_seq, cfg, models, n_out, K):
 
         pred = _one()
         ens = np.stack([_one() for _ in range(K)], 0)
-        return pred, ens
+        return pred, ens, trace
     except Exception as e:
         print(f"[forecast] ASG-WM render failed ({e}); advection fallback for this event")
-        return adv, np.repeat(adv[None], K, axis=0)
+        return adv, np.repeat(adv[None], K, axis=0), trace
 
 
 # ---------------------------------------------------------------------------
@@ -180,14 +190,21 @@ def assemble(method: str, cfg, n_events: int = 24, K: Optional[int] = None) -> L
         except Exception:
             seq, regime, context = None, "steady", {}
 
+        from asgwm.eval.ablation import apply_knowledge_ablation
+        context = apply_knowledge_ablation(context, cfg)
+
         if is_asgwm:
-            pred, ens = _asgwm_pred(hist, seq, cfg, models, n, K)
+            pred, ens, trace = _asgwm_pred(hist, seq, cfg, models, n, K)
         else:
             pred = np.asarray(bl.predict(hist, context, n), dtype=np.float32)
             ens = np.asarray(bl.predict_ensemble(hist, context, n, k=max(1, K)), dtype=np.float32)
-        samples.append({
+            trace = {}
+        sample = {
             "event_id": eid, "regime": regime,
             "obs": obs[:n], "pred": pred[:n], "ens": ens[:, :n] if ens.ndim == 4 else ens,
             "context": context,
-        })
+        }
+        if trace:
+            sample.update(trace)
+        samples.append(sample)
     return samples
